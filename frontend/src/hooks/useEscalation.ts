@@ -33,7 +33,7 @@ export function useEscalation(escalationId: string | null) {
   const [events, setEvents] = useState<KarenEvent[]>([]);
   const [escalation, setEscalation] = useState<Escalation | null>(null);
   const [connected, setConnected] = useState(false);
-  const sourceRef = useRef<EventSource | null>(null);
+  const sourceRef = useRef<AbortController | null>(null);
   const reconnectTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastSeqRef = useRef(-1);
   const reconnectAttemptRef = useRef(0);
@@ -56,63 +56,86 @@ export function useEscalation(escalationId: string | null) {
     });
 
     function connect() {
-      // Pass last_seq so server only replays events we haven't seen
+      // Use fetch-based SSE instead of EventSource so we can send
+      // the ngrok-skip-browser-warning header (EventSource can't send headers)
       const lastSeq = lastSeqRef.current;
       const params = new URLSearchParams();
       if (lastSeq >= 0) params.set("last_seq", String(lastSeq));
-      // ngrok free tier requires this to skip the browser interstitial
-      params.set("ngrok-skip-browser-warning", "true");
       const url = `${API_URL}/api/escalation/${escalationId}/stream?${params}`;
 
-      const source = new EventSource(url);
-      sourceRef.current = source;
+      const abortController = new AbortController();
+      sourceRef.current = abortController;
 
-      source.onopen = () => {
-        setConnected(true);
-        // Only reset backoff after connection is stable for 5s
-        if (stableTimerRef.current) clearTimeout(stableTimerRef.current);
-        stableTimerRef.current = setTimeout(() => {
-          reconnectAttemptRef.current = 0;
-        }, 5000);
-      };
+      fetch(url, {
+        headers: { ...API_HEADERS, Accept: "text/event-stream" },
+        signal: abortController.signal,
+      })
+        .then(async (response) => {
+          if (!response.ok || !response.body) throw new Error("SSE connect failed");
 
-      source.onerror = () => {
-        setConnected(false);
-        source.close();
-        if (stableTimerRef.current) {
-          clearTimeout(stableTimerRef.current);
-          stableTimerRef.current = null;
-        }
-        const attempt = reconnectAttemptRef.current;
-        reconnectAttemptRef.current = attempt + 1;
-        // Exponential backoff: 2s, 4s, 8s, 16s, cap at 30s
-        const delay = Math.min(2000 * Math.pow(2, attempt), 30000);
-        reconnectTimer.current = setTimeout(() => {
-          connect();
-        }, delay);
-      };
+          setConnected(true);
+          if (stableTimerRef.current) clearTimeout(stableTimerRef.current);
+          stableTimerRef.current = setTimeout(() => {
+            reconnectAttemptRef.current = 0;
+          }, 5000);
 
-      for (const type of EVENT_TYPES) {
-        source.addEventListener(type, (e: MessageEvent) => {
-          try {
-            const data = JSON.parse(e.data);
-            const seq = typeof data.seq === "number" ? data.seq : -1;
-            // Deduplicate: skip events already processed
-            if (seq >= 0 && seq <= lastSeqRef.current) return;
-            if (seq >= 0) lastSeqRef.current = seq;
-            setEvents((prev) => [...prev, data as KarenEvent]);
-            if (REFRESH_EVENTS.has(type)) fetchEscalation();
-          } catch {
-            // ignore
+          const reader = response.body.getReader();
+          const decoder = new TextDecoder();
+          let buffer = "";
+
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split("\n");
+            buffer = lines.pop() ?? "";
+
+            let eventType = "";
+            for (const line of lines) {
+              if (line.startsWith("event: ")) {
+                eventType = line.slice(7).trim();
+              } else if (line.startsWith("data: ") && eventType) {
+                try {
+                  const data = JSON.parse(line.slice(6));
+                  const seq = typeof data.seq === "number" ? data.seq : -1;
+                  if (seq >= 0 && seq <= lastSeqRef.current) { eventType = ""; continue; }
+                  if (seq >= 0) lastSeqRef.current = seq;
+                  setEvents((prev) => [...prev, data as KarenEvent]);
+                  if (REFRESH_EVENTS.has(eventType)) fetchEscalation();
+                } catch {
+                  // ignore parse errors
+                }
+                eventType = "";
+              } else if (line === "") {
+                eventType = "";
+              }
+            }
           }
+
+          // Stream ended cleanly — reconnect
+          throw new Error("stream ended");
+        })
+        .catch((err) => {
+          if (abortController.signal.aborted) return;
+          setConnected(false);
+          if (stableTimerRef.current) {
+            clearTimeout(stableTimerRef.current);
+            stableTimerRef.current = null;
+          }
+          const attempt = reconnectAttemptRef.current;
+          reconnectAttemptRef.current = attempt + 1;
+          const delay = Math.min(2000 * Math.pow(2, attempt), 30000);
+          reconnectTimer.current = setTimeout(() => {
+            connect();
+          }, delay);
         });
-      }
     }
 
     connect();
 
     return () => {
-      sourceRef.current?.close();
+      sourceRef.current?.abort();
       sourceRef.current = null;
       if (reconnectTimer.current) clearTimeout(reconnectTimer.current);
       if (stableTimerRef.current) clearTimeout(stableTimerRef.current);
