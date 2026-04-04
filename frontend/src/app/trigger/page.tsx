@@ -1,6 +1,7 @@
 "use client";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useMemo, useState } from "react";
+import { motion } from "framer-motion";
 import { FortressLayout } from "@/components/FortressLayout";
 import { StonePanel } from "@/components/StonePanel";
 import { RitualButton } from "@/components/RitualButton";
@@ -81,14 +82,28 @@ function TriggerPageInner() {
       rightSidebar={<OpenClawCoreCard status="CONSULTING" />}
       bottomZone={
         <div className="flex flex-col gap-2 w-full">
-          <RitualButton
-            label="RELEASE KAREN"
-            subtitle="INITIATE FULL ESCALATION STRIKE"
-            variant="primary"
-            className="min-h-[7rem]"
-            disabled={submitting || !target || !grievanceDetail}
-            onClick={launch}
-          />
+          <motion.div
+            initial={{ x: 0, y: 0 }}
+            animate={(!target || !grievanceDetail || submitting) ? {} : {
+              x: [-1, 2, -2, 2, -1, 1, -1],
+              y: [1, -1, 1, -1, 1],
+            }}
+            transition={{
+              repeat: Infinity,
+              duration: 0.1,
+              ease: "linear"
+            }}
+            className="w-full flex flex-col"
+          >
+            <RitualButton
+              label="RELEASE KAREN"
+              subtitle="INITIATE FULL ESCALATION STRIKE"
+              variant="primary"
+              className="min-h-[7rem] w-full"
+              disabled={submitting || !target || !grievanceDetail}
+              onClick={launch}
+            />
+          </motion.div>
           {(!target || !grievanceDetail) && (
             <div className="text-center py-2 bg-red-950/40 border-2 border-red-900 animate-pulse">
               <span className="pixel-text text-[0.65rem] text-red-400 uppercase tracking-widest font-bold">
