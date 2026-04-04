@@ -7,7 +7,7 @@ export function NavBar() {
     const pathname = usePathname();
 
     // Hide on /escalation/[id] and /join
-    if (pathname.startsWith("/escalation") || pathname.startsWith("/join")) {
+    if (!pathname || pathname.startsWith("/escalation") || pathname.startsWith("/join")) {
         return null;
     }
 
@@ -33,8 +33,8 @@ export function NavBar() {
                             key={link.href}
                             href={link.href}
                             className={`font-display text-sm uppercase tracking-wider transition-colors ${isActive
-                                    ? "text-red-500 text-shadow-pixel"
-                                    : "text-stone-500 hover:text-stone-300"
+                                ? "text-red-500 text-shadow-pixel"
+                                : "text-stone-500 hover:text-stone-300"
                                 }`}
                         >
                             {link.label}

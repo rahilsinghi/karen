@@ -6,7 +6,7 @@ export function Footer() {
     const pathname = usePathname();
 
     // Hide on /escalation/[id] and /join
-    if (pathname.startsWith("/escalation") || pathname.startsWith("/join")) {
+    if (!pathname || pathname.startsWith("/escalation") || pathname.startsWith("/join")) {
         return null;
     }
 
