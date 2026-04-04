@@ -29,18 +29,17 @@ export default function ArsenalPage() {
         { label: "NUCLEAR TIER", value: `${arsenalArtifacts.filter((item) => item.status === "NUCLEAR").length}` },
       ]}
     >
-      <div className="grid gap-4">
+      <div className="grid gap-6 p-2">
         <StonePanel title="FILTERS" eyebrow="RELIC CATEGORIES">
-          <div className="grid gap-3 md:grid-cols-3 xl:grid-cols-6">
+          <div className="grid gap-3 grid-cols-2 md:grid-cols-3 xl:grid-cols-6">
             {artifactCategories.map((category) => (
               <button
                 key={category}
                 onClick={() => setFilter(category)}
-                className={`border-4 border-border px-3 py-3 ${
-                  filter === category
+                className={`border-4 border-border px-3 py-3 ${filter === category
                     ? "bg-[#5f2a82] shadow-[inset_4px_4px_0_rgba(255,255,255,0.1),inset_-4px_-4px_0_rgba(0,0,0,0.45)]"
                     : "bg-[#2c2631]"
-                }`}
+                  }`}
               >
                 <div className="pixel-text text-[0.65rem] text-text">{category}</div>
               </button>

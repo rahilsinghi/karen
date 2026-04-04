@@ -1,3 +1,4 @@
+"use client";
 import { useEffect, useState } from "react";
 import type { Escalation, KarenEvent } from "@/lib/types";
 import { OpenClawCoreCard } from "@/components/OpenClawCoreCard";

@@ -2,8 +2,6 @@ import { motion } from "framer-motion";
 import { StonePanel } from "@/components/StonePanel";
 import { PixelStatBar } from "@/components/PixelStatBar";
 import { CrabBracket } from "@/components/CrabBracket";
-import { buildCommentaryFeed } from "@/lib/fortress-data";
-import { TypewriterText } from "@/components/KarenBossCard";
 import type { Escalation, KarenEvent } from "@/lib/types";
 
 export function OpenClawCoreCard({
@@ -15,8 +13,6 @@ export function OpenClawCoreCard({
   events?: KarenEvent[];
   status?: string;
 }) {
-  const feed = buildCommentaryFeed(events, escalation).slice(-4).reverse();
-
   return (
     <StonePanel title="OPENCLAW GOD" eyebrow="CRAB-CORE SHRINE" className="h-full">
       <div className="flex h-full flex-col gap-4">
@@ -42,31 +38,15 @@ export function OpenClawCoreCard({
             </div>
           </div>
 
-          <div className="stone-brick-wall fortress-panel grid grid-cols-3 gap-2 p-3">
+          <div className="stone-brick-wall fortress-panel grid grid-cols-3 gap-2 p-3 my-4">
             {Array.from({ length: 6 }).map((_, index) => (
               <div key={index} className="h-11 border-4 border-border bg-[#3b3640]" />
             ))}
           </div>
 
-          <PixelStatBar label="CORE HEAT" value={88} color="#ff4fd8" />
-          <PixelStatBar label="MALICE FLOW" value={72} color="#ff5533" />
-
-
-
-          <div className="fortress-panel flex-1 p-3">
-            <div className="pixel-text text-[0.6rem] text-muted">TRANSMISSION FEED</div>
-            <div className="mt-3 space-y-3">
-              {feed.map((line, idx) => (
-                <motion.div
-                  key={`${line}-${idx}`}
-                  initial={{ opacity: 0, x: -8 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  className="border-l-4 border-fortress-pink pl-3 font-mono text-[1rem] uppercase text-text"
-                >
-                  <TypewriterText text={line} speed={30} />
-                </motion.div>
-              ))}
-            </div>
+          <div className="space-y-3">
+            <PixelStatBar label="CORE HEAT" value={88} color="#ff4fd8" />
+            <PixelStatBar label="MALICE FLOW" value={72} color="#ff5533" />
           </div>
         </div>
       </div>

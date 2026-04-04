@@ -54,7 +54,7 @@ export const ritualButtons = {
     { label: "NUCLEAR FEDEX", subtitle: "DELIVER THE DOOM" },
     { label: "MANAGER SUMMON", subtitle: "CALL THE WITNESS" },
   ],
-  minors: ["YELP_BOMB", "BBB_FILE", "WITNESS_CLAN", "ETERNAL_HOLD", "CC_DOMINANCE", "SMS_HARASS"],
+  minors: [],
 };
 
 export const artifactCategories = [
