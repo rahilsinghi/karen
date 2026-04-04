@@ -1,20 +1,21 @@
 "use client";
 
-import { use, useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, use } from "react";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEscalation } from "@/hooks/useEscalation";
 import { KarenGameMode } from "@/components/game/KarenGameMode";
 import { PixelArenaGame } from "@/components/game/PixelArenaGame";
 import { useKarenAudio } from "@/hooks/useKarenAudio";
 import { useBackgroundMusic } from "@/hooks/useBackgroundMusic";
-import { useEffect } from "react";
 import { RitualButton } from "@/components/RitualButton";
 import { motion } from "framer-motion";
 
 function GamePageInner({ id }: { id: string }) {
     const router = useRouter();
+    const searchParams = useSearchParams();
     const { escalation, events, continueAnyway, resolve } = useEscalation(id);
-    const [audioEnabled, setAudioEnabled] = useState(false);
+    const [audioEnabled, setAudioEnabled] = useState(searchParams.get("resonance") === "true");
     const { start, stop, setLevel, duck, unduck } = useBackgroundMusic();
 
     useKarenAudio(events, {
@@ -91,5 +92,9 @@ function GamePageInner({ id }: { id: string }) {
 
 export default function EscalationGamePage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = use(params);
-    return <GamePageInner id={id} />;
+    return (
+        <Suspense fallback={<div className="bg-black min-h-screen flex items-center justify-center pixel-text text-white">CALIBRATING SONIC MATRICES...</div>}>
+            <GamePageInner id={id} />
+        </Suspense>
+    );
 }

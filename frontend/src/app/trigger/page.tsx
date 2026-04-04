@@ -29,6 +29,7 @@ function TriggerPageInner() {
   const [submitting, setSubmitting] = useState(false);
   const [useGameMode, setUseGameMode] = useState(true);
   const [showError, setShowError] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
 
   const fillDemo = () => {
     if (members.length > 0) {
@@ -66,12 +67,13 @@ function TriggerPageInner() {
         max_level: maxLevel,
       });
       if (useGameMode) {
-        router.push(`/escalation/${escalation.id}/game`);
+        router.push(`/escalation/${escalation.id}/game?resonance=true`);
       } else {
         router.push(`/escalation/${escalation.id}`);
       }
     } finally {
       setSubmitting(false);
+      setShowConfirmModal(false);
     }
   }
 
@@ -82,28 +84,14 @@ function TriggerPageInner() {
       rightSidebar={<OpenClawCoreCard status="CONSULTING" />}
       bottomZone={
         <div className="flex flex-col gap-2 w-full">
-          <motion.div
-            initial={{ x: 0, y: 0 }}
-            animate={(!target || !grievanceDetail || submitting) ? {} : {
-              x: [-1, 2, -2, 2, -1, 1, -1],
-              y: [1, -1, 1, -1, 1],
-            }}
-            transition={{
-              repeat: Infinity,
-              duration: 0.1,
-              ease: "linear"
-            }}
-            className="w-full flex flex-col"
-          >
-            <RitualButton
-              label="RELEASE KAREN"
-              subtitle="INITIATE FULL ESCALATION STRIKE"
-              variant="primary"
-              className="min-h-[7rem] w-full"
-              disabled={submitting || !target || !grievanceDetail}
-              onClick={launch}
-            />
-          </motion.div>
+          <RitualButton
+            label="RELEASE KAREN"
+            subtitle="INITIATE FULL ESCALATION STRIKE"
+            variant="primary"
+            className="min-h-[7rem] w-full"
+            disabled={submitting || !target || !grievanceDetail}
+            onClick={() => setShowConfirmModal(true)}
+          />
           {(!target || !grievanceDetail) && (
             <div className="text-center py-2 bg-red-950/40 border-2 border-red-900 animate-pulse">
               <span className="pixel-text text-[0.65rem] text-red-400 uppercase tracking-widest font-bold">
@@ -114,6 +102,70 @@ function TriggerPageInner() {
         </div>
       }
     >
+      {showConfirmModal && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/98 backdrop-blur-md">
+          {/* Background Dungeons */}
+          <div className="absolute inset-0 z-0 opacity-40 bg-cover bg-center" style={{ backgroundImage: 'url("/dungeon_bg.png")' }} />
+
+          {/* Darkness Vignette */}
+          <div className="absolute inset-0 z-10 bg-radial-gradient(circle, transparent 20%, black 85%) pointer-events-none" />
+
+          <div className="relative w-full max-w-xl px-4 flex flex-col items-center justify-center relative z-20">
+            {/* Abort Cross */}
+            <button
+              onClick={() => setShowConfirmModal(false)}
+              className="absolute -top-10 -right-6 z-[210] flex h-14 w-14 items-center justify-center rounded-full bg-red-950 border-4 border-red-600 text-white hover:bg-red-600 transition-all shadow-[0_0_20px_rgba(255,0,0,0.4)]"
+              aria-label="Abort"
+            >
+              <span className="pixel-text text-3xl mt-1">✕</span>
+            </button>
+
+            <div className="mc-container w-full p-10 text-center bg-[#c6c6c6] shadow-[0_0_100px_rgba(239,68,68,0.3)]">
+              <div className="mb-8 flex justify-center">
+                <motion.div
+                  animate={{
+                    filter: ["drop-shadow(0 0 5px #ef4444)", "drop-shadow(0 0 20px #ef4444)", "drop-shadow(0 0 5px #ef4444)"]
+                  }}
+                  transition={{ repeat: Infinity, duration: 2 }}
+                  className="text-6xl"
+                >
+                  🦀
+                </motion.div>
+              </div>
+              <h1 className="mc-font-pixel text-3xl mb-4 text-black tracking-tight">UNSEAL THE SONIC ARCHIVE</h1>
+              <p className="mc-font-game text-lg mb-10 text-[#3f3f3f] leading-relaxed uppercase">
+                THE KAREN ENTITY COMMUNICATES THROUGH VIBRATIONS.
+                FAILING TO ENABLE RESONANCE WILL RESULT IN AN INCOMPLETE RITUAL.
+              </p>
+
+              <motion.button
+                initial={{ x: 0, y: 0 }}
+                animate={{
+                  x: [-6, 8, -8, 6, -4, 4, -2],
+                  y: [2, -3, 3, -2, 1],
+                }}
+                transition={{
+                  repeat: Infinity,
+                  duration: 0.1,
+                  ease: "linear"
+                }}
+                onClick={launch}
+                className="group relative w-full border-[12px] border-red-600 bg-red-950/90 py-10 overflow-hidden shadow-[0_0_120px_rgba(255,0,0,0.6)] active:scale-95"
+              >
+                <div className="absolute inset-0 bg-gradient-to-t from-red-600/20 to-transparent" />
+                <span className="block font-display text-4xl md:text-5xl leading-none text-white tracking-widest translate-y-1 relative z-10">
+                  UNLEASH
+                </span>
+                <div className="mt-2 mc-font-pixel text-[0.65rem] text-red-200 relative z-10">ESTABLISH RESONANCE</div>
+              </motion.button>
+
+              <div className="mt-8 mc-font-pixel text-[0.6rem] text-stone-500 uppercase">
+                Requires Audio Output Device // Unseal at your own risk
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       <div className="grid gap-6 p-2">
         <div className="flex justify-end">
           <button
