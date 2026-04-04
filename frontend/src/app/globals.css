@@ -1,162 +1,235 @@
-@import url('https://fonts.googleapis.com/css2?family=VT323&family=Silkscreen:wght@400;700&display=swap');
-@import "./pixel-theme.css";
+@import url("https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=VT323&display=swap");
 @import "tailwindcss";
 
 @theme inline {
-  /* Karen's Evil Minecraft color system */
-  --color-bg: #0d0d0d;
-  /* Deep Void */
-  --color-surface: #1a1a1a;
-  /* Obsidian */
-  --color-border: #000000;
-  /* Pixel Border */
-  --color-text: #e0e0e0;
-  /* Light Gray */
-  --color-muted: #5a5a5a;
-  /* Stone Gray */
-  --color-karen: #ff0000;
-  /* Redstone Red */
-
-  /* Escalation level colors (Minecraft variants) */
-  --color-level-green: #3fb11a;
-  /* Grass/Emerald */
-  --color-level-yellow: #f9d72f;
-  /* Gold */
-  --color-level-orange: #d97a10;
-  /* Copper */
-  --color-level-red: #bb1a1a;
-  /* Redstone */
-  --color-level-purple: #4e1b8c;
-  /* Crying Obsidian */
-  --color-level-nuclear: #ff00ff;
-  /* Enderman/Pink */
-
-  /* Fonts */
-  --font-display: "Silkscreen", sans-serif;
+  --color-bg: #120f16;
+  --color-surface: #26212a;
+  --color-surface-alt: #342d37;
+  --color-border: #0a090b;
+  --color-text: #f5f0e8;
+  --color-muted: #b8a68f;
+  --color-fortress-stone: #3d3742;
+  --color-fortress-stone-hi: #625868;
+  --color-fortress-iron: #7d7477;
+  --color-fortress-ember: #ff5533;
+  --color-fortress-red: #b42424;
+  --color-fortress-wire: #ff3a2f;
+  --color-fortress-purple: #8b39ff;
+  --color-fortress-pink: #ff4fd8;
+  --color-fortress-slime: #6d2cb1;
+  --color-level-green: #49c56d;
+  --color-level-yellow: #dbb746;
+  --color-level-orange: #d77a34;
+  --color-level-red: #cf3b35;
+  --color-level-purple: #a35dff;
+  --color-level-nuclear: #ff4fd8;
+  --font-display: "Silkscreen", monospace;
   --font-mono: "VT323", monospace;
   --font-body: "VT323", monospace;
+}
+
+:root {
+  --fortress-shadow: 0 0 0 4px #0a090b, 0 0 0 8px #6d6569, 0 14px 0 #171219,
+    0 20px 40px rgba(0, 0, 0, 0.45);
+  --fortress-inset: inset 4px 4px 0 rgba(255, 255, 255, 0.12),
+    inset -4px -4px 0 rgba(0, 0, 0, 0.45);
 }
 
 * {
   box-sizing: border-box;
 }
 
+html,
 body {
-  background: var(--color-bg);
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background:
+    radial-gradient(circle at top center, rgba(139, 57, 255, 0.16), transparent 24%),
+    radial-gradient(circle at 85% 10%, rgba(255, 79, 216, 0.1), transparent 18%),
+    linear-gradient(180deg, rgba(255, 70, 49, 0.08), transparent 18%),
+    #120f16;
   color: var(--color-text);
   font-family: var(--font-body);
 }
 
-/* Scrollbar */
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+::selection {
+  background: rgba(255, 79, 216, 0.35);
+}
+
 ::-webkit-scrollbar {
-  width: 6px;
+  width: 10px;
+  height: 10px;
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--color-bg);
+  background: rgba(11, 8, 15, 0.85);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--color-border);
-  border-radius: 3px;
+  background: linear-gradient(180deg, #7c2525, #d34837);
+  border: 2px solid #0a090b;
 }
 
-/* Pulse animations for status badges */
-@keyframes pulse-green {
-
-  0%,
-  100% {
-    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4);
-  }
-
-  50% {
-    box-shadow: 0 0 0 6px rgba(34, 197, 94, 0);
-  }
+.fortress-bg {
+  background:
+    linear-gradient(90deg, rgba(0, 0, 0, 0.42) 2px, transparent 2px) 0 0 / 84px 42px,
+    linear-gradient(rgba(0, 0, 0, 0.34) 2px, transparent 2px) 0 0 / 84px 42px,
+    linear-gradient(90deg, rgba(255, 79, 216, 0.07), transparent 16%, transparent 84%, rgba(255, 79, 216, 0.05)),
+    linear-gradient(180deg, rgba(255, 79, 216, 0.08), transparent 14%),
+    linear-gradient(135deg, #2c2631 0%, #1b171f 44%, #110f15 100%);
 }
 
-@keyframes pulse-yellow {
-
-  0%,
-  100% {
-    box-shadow: 0 0 0 0 rgba(234, 179, 8, 0.4);
-  }
-
-  50% {
-    box-shadow: 0 0 0 6px rgba(234, 179, 8, 0);
-  }
+.fortress-panel {
+  position: relative;
+  border: 4px solid #0a090b;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent 18%),
+    linear-gradient(145deg, #514954 0%, #2f2a34 48%, #221f26 100%);
+  box-shadow: var(--fortress-shadow), var(--fortress-inset);
 }
 
-@keyframes pulse-red {
-
-  0%,
-  100% {
-    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
-  }
-
-  50% {
-    box-shadow: 0 0 0 6px rgba(239, 68, 68, 0);
-  }
+.stone-brick-wall {
+  background:
+    linear-gradient(90deg, rgba(0, 0, 0, 0.35) 2px, transparent 2px) 0 0 / 72px 36px,
+    linear-gradient(rgba(0, 0, 0, 0.32) 2px, transparent 2px) 0 0 / 72px 36px,
+    linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent 18%),
+    linear-gradient(145deg, #4a434d 0%, #322c37 54%, #27222d 100%);
 }
 
-@keyframes pulse-nuclear {
-
-  0%,
-  100% {
-    box-shadow: 0 0 0 0 rgba(236, 72, 153, 0.5);
-  }
-
-  50% {
-    box-shadow: 0 0 12px 8px rgba(236, 72, 153, 0);
-  }
+.stone-brick-wall-dark {
+  background:
+    linear-gradient(90deg, rgba(0, 0, 0, 0.4) 2px, transparent 2px) 0 0 / 72px 36px,
+    linear-gradient(rgba(0, 0, 0, 0.36) 2px, transparent 2px) 0 0 / 72px 36px,
+    linear-gradient(145deg, #2e2931 0%, #1f1a22 60%, #18131a 100%);
 }
 
-.pulse-green {
-  animation: pulse-green 2s ease-in-out infinite;
+.fortress-panel::before {
+  content: "";
+  position: absolute;
+  inset: 8px;
+  border: 2px solid rgba(237, 228, 216, 0.08);
+  pointer-events: none;
 }
 
-.pulse-yellow {
-  animation: pulse-yellow 2s ease-in-out infinite;
+.stone-input {
+  border: 4px solid #0a090b;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 24%),
+    #231e26;
+  color: var(--color-text);
+  box-shadow: inset 4px 4px 0 rgba(255, 255, 255, 0.07),
+    inset -4px -4px 0 rgba(0, 0, 0, 0.4);
 }
 
-.pulse-red {
-  animation: pulse-red 2s ease-in-out infinite;
+.stone-input:focus {
+  outline: none;
+  box-shadow: inset 4px 4px 0 rgba(255, 255, 255, 0.1),
+    inset -4px -4px 0 rgba(0, 0, 0, 0.5), 0 0 0 3px rgba(255, 79, 216, 0.22);
 }
 
-.pulse-nuclear {
-  animation: pulse-nuclear 1.5s ease-in-out infinite;
+.pixel-text {
+  font-family: var(--font-display);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
-/* Nuclear glow — box-shadow variant for cards */
-@keyframes glow-nuclear {
-
-  0%,
-  100% {
-    box-shadow: 0 0 8px #ec4899, 0 0 20px #ec489944;
-  }
-
-  50% {
-    box-shadow: 0 0 16px #ec4899, 0 0 40px #ec489966;
-  }
+.wire-run {
+  background: repeating-linear-gradient(
+    90deg,
+    rgba(255, 58, 47, 0.92) 0 12px,
+    rgba(122, 15, 15, 0.95) 12px 20px
+  );
+  box-shadow: 0 0 14px rgba(255, 58, 47, 0.38);
 }
 
-.glow-nuclear {
-  animation: glow-nuclear 2s ease-in-out infinite;
-  text-shadow: 0 0 10px rgba(236, 72, 153, 0.6), 0 0 20px rgba(236, 72, 153, 0.3);
+.wire-node {
+  width: 12px;
+  height: 12px;
+  border: 2px solid #0a090b;
+  background: #ff5533;
+  box-shadow: 0 0 14px rgba(255, 83, 51, 0.5);
 }
 
-/* Purple glow for Level 9 */
-@keyframes glow-purple {
-
-  0%,
-  100% {
-    box-shadow: 0 0 6px #a855f7, 0 0 15px #a855f744;
-  }
-
-  50% {
-    box-shadow: 0 0 12px #a855f7, 0 0 30px #a855f766;
-  }
+.torch-flame {
+  background:
+    radial-gradient(circle, #ffd36c 0 28%, #ff6b2f 34%, #8f1f14 70%, transparent 72%);
 }
 
-.glow-purple {
-  animation: glow-purple 2.5s ease-in-out infinite;
+.threat-shake {
+  animation: threat-shake 0.24s steps(2) infinite;
+}
+
+.type-glow {
+  text-shadow: 0 0 10px rgba(255, 79, 216, 0.4), 0 0 22px rgba(255, 90, 47, 0.18);
+}
+
+.violent-unleash {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.12), transparent 28%),
+    radial-gradient(circle at center, rgba(255, 92, 70, 0.5), transparent 72%),
+    linear-gradient(145deg, #ea4335 0%, #af231f 58%, #671212 100%);
+  box-shadow:
+    inset 8px 8px 0 rgba(255, 174, 167, 0.24),
+    inset -8px -8px 0 rgba(84, 6, 6, 0.82),
+    0 14px 0 #480d0d,
+    0 0 28px rgba(255, 86, 63, 0.42);
+}
+
+.violent-unleash::after {
+  content: "";
+  position: absolute;
+  inset: 8px;
+  border: 3px solid rgba(255, 231, 228, 0.12);
+  pointer-events: none;
+}
+
+@keyframes threat-shake {
+  0% { transform: translate(0); }
+  25% { transform: translate(1px, -1px); }
+  50% { transform: translate(-1px, 1px); }
+  75% { transform: translate(1px, 1px); }
+  100% { transform: translate(0); }
+}
+
+@keyframes torch-flicker {
+  0%, 100% { transform: scale(1) translateY(0); opacity: 0.92; }
+  50% { transform: scale(1.08) translateY(-1px); opacity: 1; }
+}
+
+@keyframes corruption-drip {
+  0%, 100% { transform: scaleY(1); }
+  50% { transform: scaleY(1.1); }
+}
+
+@keyframes wire-pulse {
+  0% { filter: brightness(0.9); }
+  50% { filter: brightness(1.2); }
+  100% { filter: brightness(0.9); }
+}
+
+.animate-wire-pulse {
+  animation: wire-pulse 1.8s linear infinite;
+}
+
+.animate-torch-flame {
+  animation: torch-flicker 1.2s ease-in-out infinite;
+}
+
+.animate-corruption-drip {
+  animation: corruption-drip 2.4s ease-in-out infinite;
 }

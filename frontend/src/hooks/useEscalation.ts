@@ -47,7 +47,9 @@ export function useEscalation(escalationId: string | null) {
 
   useEffect(() => {
     if (!escalationId) return;
-    fetchEscalation();
+    queueMicrotask(() => {
+      void fetchEscalation();
+    });
 
     function connect() {
       // Pass last_seq so server only replays events we haven't seen

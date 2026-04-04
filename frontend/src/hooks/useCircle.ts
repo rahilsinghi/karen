@@ -2,12 +2,11 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { API_URL } from "@/lib/constants";
-import type { ChannelStatus, Escalation, Member } from "@/lib/types";
+import type { ChannelStatus, Escalation, Member, TriggerRequest } from "@/lib/types";
 
 export function useCircle() {
   const [members, setMembers] = useState<Member[]>([]);
   const [escalations, setEscalations] = useState<Escalation[]>([]);
-  const [loading, setLoading] = useState(true);
 
   const fetchMembers = useCallback(async () => {
     try {
@@ -43,15 +42,32 @@ export function useCircle() {
     []
   );
 
+  const triggerEscalation = useCallback(async (request: Partial<TriggerRequest>) => {
+    const res = await fetch(`${API_URL}/api/trigger`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(request),
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.detail || "Failed to trigger escalation");
+    }
+    const data = await res.json();
+    fetchEscalations();
+    return data as Escalation;
+  }, [fetchEscalations]);
+
   useEffect(() => {
-    Promise.all([fetchMembers(), fetchEscalations()]).finally(() =>
-      setLoading(false)
-    );
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void fetchMembers();
+    void fetchEscalations();
 
     // Poll escalations every 3 seconds
     const interval = setInterval(fetchEscalations, 3000);
     return () => clearInterval(interval);
   }, [fetchMembers, fetchEscalations]);
 
-  return { members, escalations, loading, fetchChannels, refetch: fetchMembers };
+  const loading = members.length === 0 && escalations.length === 0;
+
+  return { members, escalations, loading, fetchChannels, triggerEscalation, createEscalation: triggerEscalation, refetch: fetchMembers };
 }
