@@ -103,8 +103,11 @@ export const KarenGameMode: React.FC<KarenGameModeProps> = ({
                 </div>
 
                 {/* Center Tower */}
-                <div className="flex-1 flex items-center justify-center p-8 bg-dungeon-bricks overflow-y-auto custom-scrollbar">
-                    <EscalationTowerScene chambers={chambers} currentLevel={currentLevel} />
+                <div className="flex-1 flex items-center justify-center p-8 bg-dungeon-bricks relative overflow-hidden">
+                    <div className="absolute inset-0 z-0 opacity-40 bg-cover bg-center" style={{ backgroundImage: 'url("/dungeon_bg.png")' }} />
+                    <div className="relative z-10 w-full h-full flex items-center justify-center">
+                        <EscalationTowerScene chambers={chambers} currentLevel={currentLevel} />
+                    </div>
                 </div>
 
                 {/* Right Core */}
@@ -163,13 +166,20 @@ export const KarenGameMode: React.FC<KarenGameModeProps> = ({
 
             <style jsx global>{`
         .bg-dungeon-bricks {
-          background: #0f172a;
-          background-image:
-            linear-gradient(rgba(147, 51, 234, 0.1) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(147, 51, 234, 0.1) 1px, transparent 1px);
-          background-size: 32px 32px;
-          box-shadow: inset 0 0 400px rgba(0, 0, 0, 0.95);
+          background: #0a0a0a;
+          box-shadow: inset 0 0 100px rgba(0, 0, 0, 0.9);
           position: relative;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: #0c0a09;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: #44403c;
+          border: 2px solid #0c0a09;
         }
       `}</style>
         </div>
