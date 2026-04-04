@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { FortressLayout } from "@/components/FortressLayout";
 import { RegistryTable } from "@/components/RegistryTable";
@@ -18,6 +18,25 @@ export default function HomePage() {
   const [confirmMode, setConfirmMode] = useState<"standard" | "nuclear" | "manager" | null>(null);
 
   const liveEscalation = escalations.find((item) => item.status === "active") ?? null;
+
+  // Drifting stat bars — nudge every 2-3s, clamped 40-99
+  const [statValues, setStatValues] = useState({ fortress: 89, fear: 72, witness: 61 });
+
+  const nudge = useCallback((current: number) => {
+    const delta = Math.floor(Math.random() * 9) - 3; // -3 to +5
+    return Math.max(40, Math.min(99, current + delta));
+  }, []);
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      setStatValues((prev) => ({
+        fortress: nudge(prev.fortress),
+        fear: nudge(prev.fear),
+        witness: nudge(prev.witness),
+      }));
+    }, 2000 + Math.random() * 1000);
+    return () => clearInterval(id);
+  }, [nudge]);
 
   const topStats = useMemo(
     () => [
@@ -124,9 +143,9 @@ export default function HomePage() {
           <OpenClawCoreCard escalation={liveEscalation} status={liveEscalation ? "AWAKE" : "IDLE"} />
           <StonePanel title="MALEDICTION GRID" eyebrow="ACTIVE KAREN">
             <div className="space-y-4">
-              <PixelStatBar label="FORTRESS LOAD" value={89} color="#ff5533" />
-              <PixelStatBar label="PUBLIC FEAR" value={72} color="#ff4fd8" />
-              <PixelStatBar label="WITNESS DENSITY" value={61} color="#dbb746" />
+              <PixelStatBar label="FORTRESS LOAD" value={statValues.fortress} color="#ff5533" />
+              <PixelStatBar label="PUBLIC FEAR" value={statValues.fear} color="#ff4fd8" />
+              <PixelStatBar label="WITNESS DENSITY" value={statValues.witness} color="#dbb746" />
               <div className="stone-brick-wall fortress-panel p-4">
                 <div className="pixel-text text-[0.6rem] text-muted">ACTIVE MATTER</div>
                 <div className="mt-2 font-mono text-[1.05rem] uppercase text-text">

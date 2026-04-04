@@ -229,6 +229,12 @@ class FedexRateEvent(BaseModel):
     destination: str
 
 
+class InterludeStartEvent(BaseModel):
+    type: Literal["interlude_start"] = "interlude_start"
+    level: int
+    duration_seconds: float
+
+
 KarenEvent = (
     LevelStartEvent
     | LevelCompleteEvent
@@ -243,4 +249,5 @@ KarenEvent = (
     | ResearchStepEvent
     | ResearchDiscoveryEvent
     | FedexRateEvent
+    | InterludeStartEvent
 )

@@ -110,10 +110,11 @@ async def generate_commentary_audio(
     personality: Personality,
     escalation_id: str,
     level: int,
+    suffix: str = "",
 ) -> str:
     """Generate commentary TTS for a specific level. Returns relative URL path."""
     esc_dir = _TMP_AUDIO_DIR / escalation_id
-    filename = f"commentary_L{level}.mp3"
+    filename = f"commentary_L{level}{suffix}.mp3"
     output_path = esc_dir / filename
 
     await generate_tts(text, personality, output_path)

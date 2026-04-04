@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import random
 import uuid
 from datetime import datetime
 from typing import Any
@@ -45,6 +46,45 @@ SPEED_SECONDS: dict[EscalationSpeed, float] = {
     EscalationSpeed.QUICK: 600,
     EscalationSpeed.STANDARD: 3600,
     EscalationSpeed.PATIENT: 86400,
+}
+
+WAITING_ADLIBS: dict[str, list[str]] = {
+    "passive_aggressive": [
+        "Still nothing. I'm taking notes.",
+        "I'll wait. I have nowhere else to be. Unlike some people.",
+        "The silence is deafening. And documented.",
+        "Clock's ticking. My patience isn't.",
+        "Oh, they're busy? That's fine. I'm busier.",
+        "I wonder if they know I can see their online status.",
+        "Every second without a response is a choice. I respect that. I also document it.",
+    ],
+    "corporate": [
+        "Pending response. Escalation timeline nominal.",
+        "No acknowledgment received. Logging.",
+        "Standing by for resolution. SLA window narrowing.",
+        "Compliance gap widening. Noted for the record.",
+        "Response window closing. Procedurally concerning.",
+        "This delay has been flagged in the system.",
+        "Awaiting input. Calendar holds are being prepared.",
+    ],
+    "genuinely_concerned": [
+        "I hope everything's okay on their end. Truly.",
+        "Just sitting here, caring aggressively.",
+        "The worry is real. The follow-up is realer.",
+        "Maybe they're thinking of a response. I choose to believe that.",
+        "Still here. Still concerned. Still escalating.",
+        "I don't want to be dramatic but I am getting a little worried.",
+        "Friendships are fragile. That's why I'm thorough.",
+    ],
+    "life_coach": [
+        "Growth often happens in the waiting.",
+        "This pause is an opportunity for them to choose accountability.",
+        "Silence is a choice. And choices have consequences.",
+        "Every second they wait, the universe takes notes.",
+        "I believe in their potential to respond. The clock does not.",
+        "The energy of avoidance creates blocks in all areas of life.",
+        "This is a growth moment. For both of us.",
+    ],
 }
 
 
@@ -519,14 +559,14 @@ async def _interlude(
     interval: float,
     level: int,
 ) -> None:
-    """Sleep between levels with commentary TTS generation."""
-    commentary_task: asyncio.Task | None = None
+    """Sleep between levels with commentary TTS generation and ad-lib filler audio."""
+    bg_tasks: list[asyncio.Task] = []
 
     # Generate commentary audio in background during the wait
-    async def _gen_commentary(text: str, lvl: int) -> None:
+    async def _gen_commentary(text: str, lvl: int, suffix: str = "") -> None:
         try:
             url = await generate_commentary_audio(
-                text, esc.personality, escalation_id, lvl,
+                text, esc.personality, escalation_id, lvl, suffix=suffix,
             )
             _emit(escalation_id, {
                 "type": "audio",
@@ -537,10 +577,17 @@ async def _interlude(
         except Exception as e:
             _emit(escalation_id, {
                 "type": "error",
-                "message": f"Commentary audio failed for L{lvl}: {e}",
+                "message": f"Commentary audio failed for L{lvl}{suffix}: {e}",
             })
 
-    # Find the last commentary event for this level
+    # Emit interlude_start so frontend can show countdown
+    _emit(escalation_id, {
+        "type": "interlude_start",
+        "level": level,
+        "duration_seconds": interval,
+    })
+
+    # Find the last commentary event for this level (the level-complete commentary)
     last_commentary = None
     for evt in reversed(esc.event_history):
         if evt.get("type") == "commentary":
@@ -548,17 +595,46 @@ async def _interlude(
             break
 
     if last_commentary:
-        commentary_task = asyncio.create_task(_gen_commentary(last_commentary, level))
+        task = asyncio.create_task(_gen_commentary(last_commentary, level))
+        bg_tasks.append(task)
 
-    # Sleep in small chunks so we can respond to status changes
+    # Pick up to 3 ad-libs for the waiting period (without replacement)
+    personality_key = esc.personality.value
+    adlib_pool = WAITING_ADLIBS.get(personality_key, [])
+    num_adlibs = min(3, len(adlib_pool))
+    adlibs = random.sample(adlib_pool, num_adlibs) if num_adlibs > 0 else []
+
+    # Schedule ad-libs at ~30%, ~55%, ~80% of the interval
+    adlib_fractions = [0.30, 0.55, 0.80]
+    adlib_triggers = {
+        int(frac * interval * 2): (i, text)  # key = elapsed in 0.5s ticks
+        for i, (frac, text) in enumerate(zip(adlib_fractions[:num_adlibs], adlibs))
+    }
+
+    # Sleep in small chunks so we can respond to status changes and fire ad-libs
+    tick_count = 0
     elapsed_time = 0.0
     while elapsed_time < interval:
         if esc.status in (
             EscalationStatus.DEESCALATING,
             EscalationStatus.RESOLVED,
         ):
-            if commentary_task and not commentary_task.done():
-                commentary_task.cancel()
+            for t in bg_tasks:
+                if not t.done():
+                    t.cancel()
             return
         await asyncio.sleep(min(0.5, interval - elapsed_time))
         elapsed_time += 0.5
+        tick_count += 1
+
+        # Check if an ad-lib should fire at this tick
+        if tick_count in adlib_triggers:
+            idx, adlib_text = adlib_triggers[tick_count]
+            _emit(escalation_id, {
+                "type": "commentary",
+                "text": adlib_text,
+                "timestamp": datetime.utcnow().isoformat(),
+            })
+            suffix = f"_adlib{idx}"
+            task = asyncio.create_task(_gen_commentary(adlib_text, level, suffix=suffix))
+            bg_tasks.append(task)

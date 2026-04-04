@@ -1,3 +1,6 @@
+"use client";
+
+import { useCallback, useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { StonePanel } from "@/components/StonePanel";
 import { PixelStatBar } from "@/components/PixelStatBar";
@@ -16,6 +19,23 @@ export function OpenClawCoreCard({
   status?: string;
 }) {
   const feed = buildCommentaryFeed(events, escalation).slice(-4).reverse();
+
+  // Drifting stat bars — nudge every 2-3s, clamped 40-99
+  const [coreHeat, setCoreHeat] = useState(88);
+  const [maliceFlow, setMaliceFlow] = useState(72);
+
+  const nudge = useCallback((current: number) => {
+    const delta = Math.floor(Math.random() * 9) - 3; // -3 to +5
+    return Math.max(40, Math.min(99, current + delta));
+  }, []);
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      setCoreHeat((v) => nudge(v));
+      setMaliceFlow((v) => nudge(v));
+    }, 2000 + Math.random() * 1000);
+    return () => clearInterval(id);
+  }, [nudge]);
 
   return (
     <StonePanel title="OPENCLAW GOD" eyebrow="CRAB-CORE SHRINE" className="h-full">
@@ -48,8 +68,8 @@ export function OpenClawCoreCard({
             ))}
           </div>
 
-          <PixelStatBar label="CORE HEAT" value={88} color="#ff4fd8" />
-          <PixelStatBar label="MALICE FLOW" value={72} color="#ff5533" />
+          <PixelStatBar label="CORE HEAT" value={coreHeat} color="#ff4fd8" />
+          <PixelStatBar label="MALICE FLOW" value={maliceFlow} color="#ff5533" />
 
 
 

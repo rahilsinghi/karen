@@ -40,11 +40,11 @@ export const fortressNav: NavItem[] = [
 ];
 
 export const sampleDossiers: DossierRow[] = [
-  { id: "mgr-bob", icon: "◉", name: "Mgr. Bob (McDonald's)", entity: "Cold Fries // Dip Denial", phase: "TARGETED", malice: "42/100", ritual: "SCROLL PRIMED" },
-  { id: "cust-serv-42", icon: "◈", name: "Customer Service #42", entity: "Infinite Loop // Hold Music", phase: "IGNORING", malice: "58/100", ritual: "SIGIL DRAWN" },
-  { id: "cashier-sally", icon: "◆", name: "Cashier Sally (Target)", entity: "Coupon Rejection // Attitude", phase: "ESCALATING", malice: "73/100", ritual: "RUNE LOOP" },
-  { id: "the-neighbor", icon: "⬢", name: "The Neighbor (Noise)", entity: "Lawn Mower // 7AM Sunday", phase: "WITNESS SUMMONED", malice: "86/100", ritual: "CLAN ALERT" },
-  { id: "manager-chad", icon: "⬣", name: "Manager Chad (Costco)", entity: "Membership Revoked // Logic", phase: "CONSEQUENCES ACTIVE", malice: "97/100", ritual: "NUCLEAR PREP" },
+  { id: "esc-001", icon: "💸", name: "Jake M. — Venmo $45", entity: "3 weeks outstanding", phase: "LEVEL 6", malice: "73", ritual: "SLACK DEPLOYED" },
+  { id: "esc-002", icon: "📱", name: "Priya K. — Left on Read", entity: "iMessage // 12 days", phase: "LEVEL 2", malice: "38", ritual: "SMS SENT" },
+  { id: "esc-003", icon: "🎧", name: "Marcus — AirPods Max", entity: "Borrowed March 2026", phase: "LEVEL 5", malice: "82", ritual: "CC DEPLOYED" },
+  { id: "esc-004", icon: "🍕", name: "Tyler — DoorDash Split", entity: "$23.47 // 'I'll get you next time'", phase: "LEVEL 3", malice: "55", ritual: "WHATSAPP SENT" },
+  { id: "esc-005", icon: "👻", name: "Alex — Discord Ghost", entity: "41 days silence", phase: "LEVEL 9", malice: "94", ritual: "NUCLEAR PREP" },
 ];
 
 export const ritualButtons = {

@@ -13,6 +13,7 @@ interface LevelCardProps {
     karenNote?: string;
     isCurrent?: boolean;
     progress?: number;
+    remainingSeconds?: number;
 }
 
 export function LevelCard({
@@ -25,6 +26,7 @@ export function LevelCard({
     karenNote,
     isCurrent,
     progress = 0,
+    remainingSeconds,
 }: LevelCardProps) {
     const colorClass = getLevelColorClass(level);
     const bgClass = getLevelBgClass(level);
@@ -80,7 +82,7 @@ export function LevelCard({
                         />
                         <div className="absolute inset-0 flex items-center px-2">
                             <span className="text-[0.55rem] uppercase font-bold text-white mix-blend-difference">
-                                Next level in {Math.max(1, 10 - Math.floor(progress / 10))}s...
+                                {remainingSeconds != null ? `Next level in ${remainingSeconds}s...` : "Preparing next level..."}
                             </span>
                         </div>
                     </div>

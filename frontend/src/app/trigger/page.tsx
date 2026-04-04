@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { FortressLayout } from "@/components/FortressLayout";
 import { StonePanel } from "@/components/StonePanel";
@@ -21,6 +21,11 @@ export default function TriggerPage() {
   const [grievanceType, setGrievanceType] = useState<"financial" | "object" | "communication">("communication");
   const [grievanceDetail, setGrievanceDetail] = useState("");
   const [amount, setAmount] = useState("");
+  const [venmoHandle, setVenmoHandle] = useState("");
+  const [itemName, setItemName] = useState("");
+  const [estimatedValue, setEstimatedValue] = useState("");
+  const [platform, setPlatform] = useState("discord");
+  const [daysSinceLastResponse, setDaysSinceLastResponse] = useState("");
   const [date, setDate] = useState("");
   const [personality, setPersonality] = useState<Personality>("passive_aggressive");
   const [speed, setSpeed] = useState<EscalationSpeed>("demo");
@@ -28,18 +33,40 @@ export default function TriggerPage() {
   const [submitting, setSubmitting] = useState(false);
   const [useGameMode, setUseGameMode] = useState(true);
 
+  useEffect(() => {
+    if (members.length > 0 && !members.some((m) => m.id === initiator)) {
+      setInitiator(members[0].id);
+    }
+  }, [members, initiator]);
+
   const preview = useMemo(() => personalityScripts[personality], [personality]);
 
   async function launch() {
     if (!target || !grievanceDetail) return;
     setSubmitting(true);
     try {
+      let detail = grievanceDetail;
+      if (grievanceType === "financial" && venmoHandle) {
+        detail += ` (Venmo: ${venmoHandle})`;
+      } else if (grievanceType === "object") {
+        const parts: string[] = [];
+        if (itemName) parts.push(`Item: ${itemName}`);
+        if (estimatedValue) parts.push(`Est. value: $${estimatedValue}`);
+        if (parts.length > 0) detail += ` (${parts.join(", ")})`;
+      } else if (grievanceType === "communication") {
+        const parts: string[] = [];
+        if (platform) parts.push(`Platform: ${platform}`);
+        if (daysSinceLastResponse) parts.push(`${daysSinceLastResponse} days without response`);
+        if (parts.length > 0) detail += ` (${parts.join(", ")})`;
+      }
+
       const escalation = await triggerEscalation({
         initiator_id: initiator,
         target_id: target,
         grievance_type: grievanceType,
-        grievance_detail: grievanceDetail,
-        amount: amount ? Number(amount) : undefined,
+        grievance_detail: detail,
+        amount: grievanceType === "financial" && amount ? Number(amount) : undefined,
+        venmo_handle: grievanceType === "financial" && venmoHandle ? venmoHandle : undefined,
         date_of_incident: date || undefined,
         personality,
         speed,
@@ -60,7 +87,7 @@ export default function TriggerPage() {
       title="MISSION ALTAR // INITIATE STRIKE"
       subtitle="COMMAND CENTER OF MALICE"
       rightSidebar={<OpenClawCoreCard status="CONSULTING" />}
-      bottomZone={<RitualButton label="LAUNCH RITUAL" subtitle="UNSEAL THE CHANNEL STACK" variant="primary" className="min-h-[7rem]" disabled={submitting || !target || !grievanceDetail} onClick={launch} />}
+      bottomZone={<RitualButton label="UNLEASH KAREN 🦞" subtitle="THE LOBSTER AWAKENS" variant="primary" className="min-h-[7rem]" disabled={submitting || !target || !grievanceDetail} onClick={launch} />}
     >
       <div className="grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
         <StonePanel title="TARGET SELECTOR" eyebrow="GRIEVANCE FORGE">
@@ -68,16 +95,20 @@ export default function TriggerPage() {
             <label className="grid gap-2">
               <span className="pixel-text text-[0.6rem] text-muted">Initiator</span>
               <select className="stone-input px-3 py-3" value={initiator} onChange={(event) => setInitiator(event.target.value)}>
-                <option value="rahil">Rahil</option>
+                {members.map((member) => (
+                  <option key={member.id} value={member.id}>
+                    {member.avatar_emoji} {member.name}
+                  </option>
+                ))}
               </select>
             </label>
             <label className="grid gap-2">
               <span className="pixel-text text-[0.6rem] text-muted">Target</span>
               <select className="stone-input px-3 py-3" value={target} onChange={(event) => setTarget(event.target.value)}>
                 <option value="">Choose victim</option>
-                {members.filter((member) => member.id !== "rahil").map((member) => (
+                {members.filter((member) => member.id !== initiator).map((member) => (
                   <option key={member.id} value={member.id}>
-                    {member.name}
+                    {member.avatar_emoji} {member.name}
                   </option>
                 ))}
               </select>
@@ -90,10 +121,49 @@ export default function TriggerPage() {
                 <option value="object">Object</option>
               </select>
             </label>
-            <label className="grid gap-2">
-              <span className="pixel-text text-[0.6rem] text-muted">Amount</span>
-              <input className="stone-input px-3 py-3" value={amount} onChange={(event) => setAmount(event.target.value)} placeholder="199.00" />
-            </label>
+            {grievanceType === "financial" && (
+              <>
+                <label className="grid gap-2">
+                  <span className="pixel-text text-[0.6rem] text-muted">Amount ($)</span>
+                  <input className="stone-input px-3 py-3" type="number" step="0.01" value={amount} onChange={(event) => setAmount(event.target.value)} placeholder="23.00" />
+                </label>
+                <label className="grid gap-2">
+                  <span className="pixel-text text-[0.6rem] text-muted">Venmo Handle</span>
+                  <input className="stone-input px-3 py-3" value={venmoHandle} onChange={(event) => setVenmoHandle(event.target.value)} placeholder="@RahilSinghi" />
+                </label>
+              </>
+            )}
+            {grievanceType === "object" && (
+              <>
+                <label className="grid gap-2">
+                  <span className="pixel-text text-[0.6rem] text-muted">Item Name</span>
+                  <input className="stone-input px-3 py-3" value={itemName} onChange={(event) => setItemName(event.target.value)} placeholder="AirPods Pro" />
+                </label>
+                <label className="grid gap-2">
+                  <span className="pixel-text text-[0.6rem] text-muted">Estimated Value ($)</span>
+                  <input className="stone-input px-3 py-3" type="number" step="0.01" value={estimatedValue} onChange={(event) => setEstimatedValue(event.target.value)} placeholder="249.00" />
+                </label>
+              </>
+            )}
+            {grievanceType === "communication" && (
+              <>
+                <label className="grid gap-2">
+                  <span className="pixel-text text-[0.6rem] text-muted">Platform</span>
+                  <select className="stone-input px-3 py-3" value={platform} onChange={(event) => setPlatform(event.target.value)}>
+                    <option value="discord">Discord</option>
+                    <option value="imessage">iMessage</option>
+                    <option value="whatsapp">WhatsApp</option>
+                    <option value="email">Email</option>
+                    <option value="slack">Slack</option>
+                    <option value="other">Other</option>
+                  </select>
+                </label>
+                <label className="grid gap-2">
+                  <span className="pixel-text text-[0.6rem] text-muted">Days Since Last Response</span>
+                  <input className="stone-input px-3 py-3" type="number" min="0" value={daysSinceLastResponse} onChange={(event) => setDaysSinceLastResponse(event.target.value)} placeholder="14" />
+                </label>
+              </>
+            )}
             <label className="grid gap-2 md:col-span-2">
               <span className="pixel-text text-[0.6rem] text-muted">Grievance Detail</span>
               <textarea className="stone-input min-h-[9rem] px-3 py-3" value={grievanceDetail} onChange={(event) => setGrievanceDetail(event.target.value)} placeholder="Describe the offense against your schedule, money, soul, or inbox." />

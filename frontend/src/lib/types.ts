@@ -86,4 +86,5 @@ export type KarenEvent =
   | { type: "audio"; audio_type: "quip" | "commentary"; audio_url: string; text?: string }
   | { type: "research_step"; step: number; detail: string; pause_ms?: number }
   | { type: "research_discovery"; target: string; employer: string; work_email: string; coworker_name: string; coworker_email: string }
-  | { type: "fedex_rate"; rate: string; service: string; destination: string };
+  | { type: "fedex_rate"; rate: string; service: string; destination: string }
+  | { type: "interlude_start"; level: number; duration_seconds: number; timestamp: string };
