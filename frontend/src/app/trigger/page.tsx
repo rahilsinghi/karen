@@ -26,6 +26,7 @@ export default function TriggerPage() {
   const [speed, setSpeed] = useState<EscalationSpeed>("demo");
   const [maxLevel, setMaxLevel] = useState(6);
   const [submitting, setSubmitting] = useState(false);
+  const [useGameMode, setUseGameMode] = useState(true);
 
   const preview = useMemo(() => personalityScripts[personality], [personality]);
 
@@ -44,7 +45,11 @@ export default function TriggerPage() {
         speed,
         max_level: maxLevel,
       });
-      router.push(`/escalation/${escalation.id}`);
+      if (useGameMode) {
+        router.push(`/escalation/${escalation.id}/game`);
+      } else {
+        router.push(`/escalation/${escalation.id}`);
+      }
     } finally {
       setSubmitting(false);
     }
@@ -107,11 +112,24 @@ export default function TriggerPage() {
                 ))}
               </select>
             </label>
-            <label className="grid gap-2 md:col-span-2">
+            <label className="grid gap-2 md:col-span-2 border-t-2 border-border pt-4 mt-2">
               <span className="pixel-text text-[0.6rem] text-muted">Max Escalation Level</span>
               <input type="range" min={1} max={10} value={maxLevel} onChange={(event) => setMaxLevel(Number(event.target.value))} />
               <div className="pixel-text text-[0.75rem] text-fortress-ember">Danger meter set to {maxLevel}</div>
             </label>
+
+            <div className="md:col-span-2 mt-4 flex items-center gap-3 mc-container p-4 bg-[#c6c6c6] text-black">
+              <input
+                type="checkbox"
+                id="game-mode"
+                className="w-6 h-6 cursor-pointer"
+                checked={useGameMode}
+                onChange={e => setUseGameMode(e.target.checked)}
+              />
+              <label htmlFor="game-mode" className="mc-font-pixel text-[0.8rem] cursor-pointer font-bold">
+                ENABLE GAME MODE VISUALIZATION
+              </label>
+            </div>
           </div>
         </StonePanel>
 

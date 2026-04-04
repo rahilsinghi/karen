@@ -26,6 +26,9 @@ export const metadata: Metadata = {
   description: "A cursed grievance fortress for theatrical escalation.",
 };
 
+import { NavBar } from "@/components/NavBar";
+import { Footer } from "@/components/Footer";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -37,14 +40,9 @@ export default function RootLayout({
       className={`${silkscreen.variable} ${vt323.variable} ${vt323Mono.variable} h-full antialiased`}
     >
       <body className="min-h-screen flex flex-col bg-bg text-text">
-        <main className="flex-1">{children}</main>
-        <footer className="border-t border-border px-6 py-4 text-center font-mono text-xs text-muted">
-          <p>Karen is always watching. Karen means well.</p>
-          <p className="mt-1">
-            &copy; Karen Automated Correspondence Systems LLC — All rights
-            reserved. All matters documented. All debts remembered.
-          </p>
-        </footer>
+        <NavBar />
+        <main className="flex-1 pt-14">{children}</main>
+        <Footer />
       </body>
     </html>
   );

@@ -1,10 +1,9 @@
-"use client";
-
 import { motion } from "framer-motion";
 import { StonePanel } from "@/components/StonePanel";
 import { PixelStatBar } from "@/components/PixelStatBar";
 import { CrabBracket } from "@/components/CrabBracket";
 import { buildCommentaryFeed } from "@/lib/fortress-data";
+import { TypewriterText } from "@/components/KarenBossCard";
 import type { Escalation, KarenEvent } from "@/lib/types";
 
 export function OpenClawCoreCard({
@@ -52,17 +51,19 @@ export function OpenClawCoreCard({
           <PixelStatBar label="CORE HEAT" value={88} color="#ff4fd8" />
           <PixelStatBar label="MALICE FLOW" value={72} color="#ff5533" />
 
+
+
           <div className="fortress-panel flex-1 p-3">
             <div className="pixel-text text-[0.6rem] text-muted">TRANSMISSION FEED</div>
             <div className="mt-3 space-y-3">
-              {feed.map((line) => (
+              {feed.map((line, idx) => (
                 <motion.div
-                  key={line}
+                  key={`${line}-${idx}`}
                   initial={{ opacity: 0, x: -8 }}
                   animate={{ opacity: 1, x: 0 }}
                   className="border-l-4 border-fortress-pink pl-3 font-mono text-[1rem] uppercase text-text"
                 >
-                  {line}
+                  <TypewriterText text={line} speed={30} />
                 </motion.div>
               ))}
             </div>

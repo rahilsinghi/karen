@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense, use, useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { FortressLayout } from "@/components/FortressLayout";
 import { StonePanel } from "@/components/StonePanel";
 import { OpenClawCoreCard } from "@/components/OpenClawCoreCard";
@@ -12,11 +13,13 @@ import { buildCommentaryFeed, levelTone } from "@/lib/fortress-data";
 import { useEscalation } from "@/hooks/useEscalation";
 import { useKarenAudio } from "@/hooks/useKarenAudio";
 import { useBackgroundMusic } from "@/hooks/useBackgroundMusic";
+import { LevelTimeline } from "@/components/LevelTimeline";
 import { motion, AnimatePresence } from "framer-motion";
 import ResearchAnimation from "@/components/ResearchAnimation";
 
 function EscalationPageInner({ id }: { id: string }) {
   const { escalation, events, connected, continueAnyway, resolve, confirmPayment } = useEscalation(id);
+  const router = useRouter();
   const [audioEnabled, setAudioEnabled] = useState(false);
   const { start, stop, setLevel, duck, unduck } = useBackgroundMusic();
 
@@ -136,7 +139,17 @@ function EscalationPageInner({ id }: { id: string }) {
       <FortressLayout
         title="LIVE ESCALATION // FORTRESS LADDER"
         subtitle="COMMAND CENTER OF MALICE"
-        rightSidebar={<OpenClawCoreCard escalation={escalation} events={events} status={connected ? "AWAKE" : "LISTENING"} />}
+        rightSidebar={
+          <div className="flex flex-col gap-4">
+            <OpenClawCoreCard escalation={escalation} events={events} status={connected ? "AWAKE" : "LISTENING"} />
+            <RitualButton
+              label="ENTER GAME MODE"
+              subtitle="COMMANDER VIEW"
+              variant="primary"
+              onClick={() => router.push(`/escalation/${id}/game`)}
+            />
+          </div>
+        }
         bottomZone={bottomZone}
         topStats={[
           { label: "TARGET", value: escalation?.target.name.toUpperCase() ?? "BINDING" },
@@ -145,7 +158,8 @@ function EscalationPageInner({ id }: { id: string }) {
         ]}
       >
         <div className={`grid gap-4 xl:grid-cols-[0.9fr_1.2fr_0.9fr] ${currentLevel >= 8 ? "threat-shake" : ""}`}>
-          <div className="grid gap-4">
+
+          <div className="flex flex-col gap-4">
             <StonePanel title="TARGET DOSSIER" eyebrow="BOSS FIGHT HEADER">
               <div className="space-y-3 font-mono text-[1rem] uppercase">
                 <div>{escalation?.grievance_detail ?? "Loading chamber..."}</div>
@@ -165,16 +179,9 @@ function EscalationPageInner({ id }: { id: string }) {
                 </div>
               </div>
             </StonePanel>
-            <StonePanel title="RITUAL CHARGE METER" eyebrow="COUNTDOWN TO NEXT FLOOR">
-              <div className="border-4 border-border bg-[#130f15] p-3">
-                <div
-                  className="wire-run animate-wire-pulse h-6"
-                  style={{ width: `${Math.min(100, currentLevel * 10)}%` }}
-                />
-              </div>
-              <div className="mt-3 pixel-text text-[0.8rem] text-fortress-pink">{nextCharge}</div>
-            </StonePanel>
-            <CommentaryLog lines={commentary} />
+
+            <LevelTimeline events={events} currentLevel={currentLevel} />
+
             {researchEvents.length > 0 && (
               <StonePanel title="OSINT MODULE" eyebrow="KAREN RESEARCH">
                 <ResearchAnimation events={events} />
