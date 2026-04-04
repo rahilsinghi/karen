@@ -1,0 +1,84 @@
+{
+  "members": [
+    {
+      "id": "rahil",
+      "name": "Rahil Singhi",
+      "role": "admin",
+      "avatar_emoji": "🦞",
+      "contacts": {
+        "email": "rahilsinghi300@gmail.com",
+        "phone": "+16467296148",
+        "whatsapp": "+16467296148",
+        "linkedin": "linkedin.com/in/rahilsinghi",
+        "twitter": "@rahilsinghi",
+        "venmo": "@RahilSinghi",
+        "calendar": "rahil@makekismet.com",
+        "address": "FILL_BEFORE_DEMO"
+      }
+    },
+    {
+      "id": "bharath",
+      "name": "Bharath Mahesh Gera",
+      "role": "member",
+      "avatar_emoji": "🎯",
+      "contacts": {
+        "email": "rahilsinghi300@gmail.com",
+        "phone": "+16467296148",
+        "whatsapp": "+16467296148",
+        "linkedin": "linkedin.com/in/bharath-mahesh-gera",
+        "twitter": "@SinghiRahil",
+        "venmo": "@RahilSinghi",
+        "calendar": "bharathmaheshgera@stern.nyu.edu",
+        "address": "FILL_BEFORE_DEMO"
+      }
+    },
+    {
+      "id": "chinmay",
+      "name": "Chinmay Shringi",
+      "role": "member",
+      "avatar_emoji": "⚡",
+      "contacts": {
+        "email": "cs7810@nyu.edu",
+        "phone": "FILL_BEFORE_DEMO",
+        "whatsapp": "FILL_BEFORE_DEMO",
+        "linkedin": "FILL_BEFORE_DEMO",
+        "twitter": "FILL_BEFORE_DEMO",
+        "venmo": "FILL_BEFORE_DEMO",
+        "calendar": "cs7810@nyu.edu",
+        "address": "FILL_BEFORE_DEMO"
+      }
+    },
+    {
+      "id": "sariya",
+      "name": "Sariya Rizwan",
+      "role": "member",
+      "avatar_emoji": "🌙",
+      "contacts": {
+        "email": "sariyakh25@gmail.com",
+        "phone": "FILL_BEFORE_DEMO",
+        "whatsapp": "FILL_BEFORE_DEMO",
+        "linkedin": "FILL_BEFORE_DEMO",
+        "twitter": "FILL_BEFORE_DEMO",
+        "venmo": "FILL_BEFORE_DEMO",
+        "calendar": "sariyakh25@gmail.com",
+        "address": "FILL_BEFORE_DEMO"
+      }
+    },
+    {
+      "id": "aishwarya",
+      "name": "Aishwarya Ghaiwat",
+      "role": "member",
+      "avatar_emoji": "🎨",
+      "contacts": {
+        "email": "FILL_BEFORE_DEMO",
+        "phone": "FILL_BEFORE_DEMO",
+        "whatsapp": "FILL_BEFORE_DEMO",
+        "linkedin": "FILL_BEFORE_DEMO",
+        "twitter": "FILL_BEFORE_DEMO",
+        "venmo": "FILL_BEFORE_DEMO",
+        "calendar": "FILL_BEFORE_DEMO",
+        "address": "FILL_BEFORE_DEMO"
+      }
+    }
+  ]
+}
