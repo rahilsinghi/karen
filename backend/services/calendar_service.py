@@ -48,7 +48,6 @@ async def create_event(
                 "dateTime": end.isoformat() + "Z",
                 "timeZone": "America/New_York",
             },
-            "attendees": [{"email": target_email}],
             "reminders": {
                 "useDefault": False,
                 "overrides": [
@@ -62,7 +61,7 @@ async def create_event(
         result = service.events().insert(
             calendarId=calendar_id,
             body=event_body,
-            sendUpdates="all",
+            sendUpdates="none",
         ).execute()
 
         event_id = result.get("id", "")

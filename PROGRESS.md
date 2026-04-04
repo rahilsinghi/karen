@@ -12,16 +12,16 @@ Last updated: 2026-04-04 (Session 4)
 | 2 | Pre-seeded circle.json + /api/members endpoint | DONE |
 | 3 | Contact resolution logic (get_available_channels) | DONE |
 | 4 | Personality service (Claude Haiku 4.5) | DONE |
-| 5a | Email (Resend API) | CODE DONE — needs RESEND_API_KEY |
+| 5a | Email (Resend API) | WORKING — free tier, sends to account email only |
 | 5b | SMS (Twilio) | WORKING |
-| 5c | WhatsApp (Twilio) | CODE DONE — needs sandbox setup |
+| 5c | WhatsApp (Twilio) | WORKING — to verified numbers only |
 | 5d | Voice call (Twilio) | WORKING (trial account disclaimer) |
-| 5e | OSINT Research (pre-cached) | NOT STARTED — v2 ladder |
-| 5f | Slack bot | NOT STARTED — v2 ladder |
+| 5e | OSINT Research (pre-cached) | WORKING — research_cache.json + SSE animation |
+| 5f | Slack bot | WORKING — Karen HQ workspace, #karen-escalations |
 | 5g | Discord bot | WORKING |
 | 5h | GitHub API → Open Matters | WORKING |
-| 5i | Google Calendar API (real) | NOT STARTED — v2 ladder |
-| 5j | FedEx (PDF + rate API) | PARTIAL — PDF works, rate API not started |
+| 5i | Google Calendar API (real) | WORKING — service account on shared calendar |
+| 5j | FedEx (PDF + rate API) | WORKING — PDF done, rate uses $28.40 fallback |
 | ~~5x~~ | ~~LinkedIn~~ | REMOVED in v2 |
 | ~~5y~~ | ~~Twitter/X~~ | REMOVED in v2 |
 | 6 | Karen orchestration service (escalation ladder) | DONE |
@@ -41,23 +41,26 @@ Last updated: 2026-04-04 (Session 4)
 
 ---
 
-## Channel Status (as of 2026-03-30)
+## Channel Status (as of 2026-04-04)
 
 ### WORKING (confirmed delivery)
+- **Email (Resend)** — Sends via Resend API. Free tier only delivers to rahilsinghi300@gmail.com without verified domain. Need domain verification for real targets.
 - **SMS (Twilio)** — Messages delivered to +16467296148 (Rahil's verified number)
 - **Voice call (Twilio)** — Calls to verified numbers, Polly.Joanna TTS. Trial disclaimer plays first.
+- **Slack** — Karen bot posts to #karen-escalations in Karen HQ workspace. Post + delete both work.
 - **Discord** — Bot posts to #karen-text-demo-channel in Karen EvilClaw server
+- **Google Calendar** — Real integration via service account on Rahil's shared calendar. Create + delete work. No attendee invites (service account limitation — events just appear on shared calendar).
 - **GitHub** — Commits to rahilsinghi/portfolio, data/open-matters.json created
 - **FedEx PDF** — WeasyPrint generates print-ready letter, downloadable at `/api/escalation/{id}/letter.pdf`
+- **OSINT Research** — Pre-cached data in research_cache.json, animated SSE display
 
-### CODE DONE — needs credentials/setup
-- **Email (Resend)** — Code uses Resend API (NOT Gmail SMTP despite CLAUDE.md spec). Need `RESEND_API_KEY` in `.env`. Free tier: 10k emails/month, sends only to signup email without verified domain.
-- **WhatsApp (Twilio)** — Code works, Twilio returns 400. Need WhatsApp sandbox setup + recipient must join sandbox.
+### CODE DONE — works with limitations
+- **WhatsApp (Twilio)** — WORKING to verified numbers (Rahil's +16467296148). Bharath's number needs verification before demo.
+- **FedEx Rate API** — Falls back to $28.40 hardcoded. Sandbox credentials optional.
 
-### STUBS (skip for demo)
-- **LinkedIn** — Returns fake success. Would need Playwright browser automation.
-- **Google Calendar** — Returns fake success. Needs service account + google-api-python-client.
-- **Twitter/X** — Auth works but 402 CreditsDepleted. Needs Basic plan ($100/mo). Skip.
+### REMOVED in v2
+- **LinkedIn** — Stub removed. No replacement needed.
+- **Twitter/X** — 402 CreditsDepleted. Removed entirely.
 
 ---
 
@@ -81,21 +84,24 @@ Last updated: 2026-04-04 (Session 4)
 | Credential | Status |
 |------------|--------|
 | ANTHROPIC_API_KEY | SET (Claude Haiku 4.5 — claude-haiku-4-5-20251001) |
-| RESEND_API_KEY | EMPTY — need to create account + key |
+| RESEND_API_KEY | SET (re_7hrD48b...) — free tier, no verified domain |
 | TWILIO_ACCOUNT_SID | SET |
 | TWILIO_AUTH_TOKEN | SET |
 | TWILIO_PHONE_NUMBER | SET (+12602548913) |
+| SLACK_BOT_TOKEN | SET (xoxb-...) — Karen HQ workspace |
+| SLACK_CHANNEL_ID | SET (C0AQPUX88F5) — #karen-escalations |
 | DISCORD_BOT_TOKEN | SET |
 | DISCORD_CHANNEL_ID | SET (1488041144070705153) |
 | DISCORD_SERVER_ID | SET (1488037490744098866) |
 | GITHUB_TOKEN | SET (fine-grained PAT, push to rahilsinghi/portfolio) |
 | GITHUB_REPO | SET (rahilsinghi/portfolio) |
-| TWITTER_* | SET but unusable (402 CreditsDepleted) |
-| GOOGLE_CALENDAR_CREDENTIALS | EMPTY — needs service account JSON |
-| LINKEDIN_* | EMPTY — skipping |
-| FEDEX_* | EMPTY — skipping |
+| GOOGLE_CALENDAR_CREDENTIALS | SET (gcp-sa-key.json) — service account |
+| GOOGLE_CALENDAR_ID | SET (rahilsinghi300@gmail.com) |
+| ELEVENLABS_API_KEY | SET |
+| ELEVENLABS_VOICE_ID | SET (21m00Tcm4TlvDq8ikWAM — Rachel) |
+| FEDEX_* | NOT SET — using $28.40 fallback |
 
-**Important:** Email code uses `RESEND_API_KEY`, NOT `KAREN_GMAIL_APP_PASSWORD`. The CLAUDE.md spec says Gmail SMTP but the implementation uses Resend. Update .env accordingly.
+**Important:** Email code uses `RESEND_API_KEY`, NOT `KAREN_GMAIL_APP_PASSWORD`. Calendar uses service account (no attendee invites — events appear directly on shared calendar).
 
 ---
 
