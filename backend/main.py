@@ -17,7 +17,7 @@ from services.llm_provider import get_provider_name, set_provider
 
 load_dotenv()
 
-_default_origins = "http://localhost:3000,https://molly.rahilsinghi.com"
+_default_origins = "http://localhost:3000,https://molly.rahilsinghi.com,https://karen-tau.vercel.app"
 _cors_origins = [o.strip() for o in os.environ.get("CORS_ORIGINS", _default_origins).split(",") if o.strip()]
 
 app = FastAPI(title="Karen API", version="0.1.0")
