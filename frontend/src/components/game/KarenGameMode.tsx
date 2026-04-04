@@ -1,6 +1,7 @@
 import React from "react";
 import { EscalationTowerScene } from "./EscalationTowerScene";
 import { OpenClawCorePanel } from "./OpenClawCorePanel";
+import { LevelTimeline } from "@/components/LevelTimeline";
 import { useEventGameState } from "@/hooks/useEventGameState";
 import type { Escalation, KarenEvent } from "@/lib/types";
 import { motion, AnimatePresence } from "framer-motion";
@@ -61,31 +62,25 @@ export const KarenGameMode: React.FC<KarenGameModeProps> = ({
 
             {/* MAIN GAME SCENE */}
             <div className="flex-1 flex overflow-hidden">
-                {/* Left Stats/Dossier */}
-                <div className="w-1/4 p-6 flex flex-col gap-6 bg-[#0c0a09] border-r-8 border-black">
-                    <div className="mc-container p-4 h-full flex flex-col gap-4">
-                        <div className="mc-font-pixel text-[0.68rem] text-muted border-b-2 border-black pb-2">Grievance Dossier</div>
-                        <div className="mc-font-game text-sm overflow-y-auto custom-scrollbar uppercase">
-                            {grievance}
-                        </div>
-
-                        <div className="mt-auto space-y-4">
-                            <div className="flex flex-col gap-1">
-                                <span className="mc-font-pixel text-[0.5rem]">Threat Hud</span>
-                                <div className={`mc-font-game text-xs text-center border-4 border-black p-2 ${responseDetected ? "bg-red-800 text-red-200" : "bg-green-800 text-green-200"}`}>
-                                    {responseDetected ? "TARGET RESISTING" : "TARGET COMPLYING"}
+                {/* Left Stats/Dossier + Level Timeline */}
+                <div className="w-1/4 flex flex-col bg-[#0c0a09] border-r-8 border-black overflow-hidden">
+                    <div className="p-4 flex-shrink-0">
+                        <div className="mc-container p-4 flex flex-col gap-3">
+                            <div className="mc-font-pixel text-[0.68rem] text-muted border-b-2 border-black pb-2">Grievance Dossier</div>
+                            <div className="mc-font-game text-sm uppercase line-clamp-3">
+                                {grievance}
+                            </div>
+                            <div className="flex gap-2 mt-1">
+                                <div className={`mc-font-game text-[0.6rem] text-center border-2 border-black px-2 py-1 flex-1 ${responseDetected ? "bg-red-800 text-red-200" : "bg-green-800 text-green-200"}`}>
+                                    {responseDetected ? "RESISTING" : "COMPLYING"}
+                                </div>
+                                <div className={`mc-font-game text-[0.6rem] text-center border-2 border-black px-2 py-1 flex-1 ${paymentDetected ? "bg-yellow-800 text-yellow-200" : "bg-black text-gray-500"}`}>
+                                    {paymentDetected ? "TRIBUTE" : "NO TRIBUTE"}
                                 </div>
                             </div>
-                            <div className="flex flex-col gap-1">
-                                <div className={`mc-font-game text-xs text-center border-4 border-black p-2 ${paymentDetected ? "bg-yellow-800 text-yellow-200" : "bg-black text-gray-500"}`}>
-                                    {paymentDetected ? "TRIBUTE DETECTED" : "NO TRIBUTE"}
-                                </div>
-                            </div>
-
-                            {/* De-escalation Ritual Overlays */}
                             {gameState.deescalationActive && (
-                                <div className="mt-4 mc-container p-3 bg-indigo-900 border-indigo-400">
-                                    <div className="mc-font-pixel text-[0.5rem] mb-2 text-indigo-300">RITUAL REVERSAL ACTIVE</div>
+                                <div className="mc-container p-2 bg-indigo-900 border-indigo-400">
+                                    <div className="mc-font-pixel text-[0.5rem] mb-1 text-indigo-300">RITUAL REVERSAL</div>
                                     <div className="flex gap-1">
                                         {Array.from({ length: 5 }).map((_, i) => (
                                             <motion.div
@@ -99,6 +94,10 @@ export const KarenGameMode: React.FC<KarenGameModeProps> = ({
                                 </div>
                             )}
                         </div>
+                    </div>
+                    {/* Level Timeline — scrollable */}
+                    <div className="flex-1 overflow-y-auto custom-scrollbar px-4 pb-4">
+                        <LevelTimeline events={events} currentLevel={currentLevel} />
                     </div>
                 </div>
 

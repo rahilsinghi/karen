@@ -189,7 +189,12 @@ function EscalationPageInner({ id }: { id: string }) {
             )}
           </div>
 
-          <EscalationTower currentLevel={currentLevel} />
+          <div className="flex flex-col gap-4">
+            <EscalationTower currentLevel={currentLevel} />
+            {commentary.length > 0 && (
+              <CommentaryLog lines={commentary} />
+            )}
+          </div>
 
           <div className="grid gap-4">
             <StonePanel title="THREAT CENSUS" eyebrow="COUNTERS">
