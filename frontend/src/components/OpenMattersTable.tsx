@@ -7,10 +7,10 @@ import { API_URL, getLevelColorClass, KAREN_QUOTES } from "@/lib/constants";
 
 // ─── Constants ────────────────────────────────────────────────────────
 const OVERSCAN_PX = 200;
-const ROW_PADDING_Y = 24; // py-3 = 12px top + 12px bottom
+const ROW_PADDING_Y = 24;
 const ROW_BORDER = 1;
-const ROW_FONT = "12px DM Mono, monospace";
-const HEADER_HEIGHT = 36;
+const ROW_FONT = "18px VT323, monospace";
+const HEADER_HEIGHT = 44;
 
 // ─── Types ────────────────────────────────────────────────────────────
 interface RowMetrics {
@@ -28,30 +28,30 @@ function StatusBadge({ escalation }: { escalation: Escalation }) {
 
   if (status === "resolved") {
     return (
-      <span className="font-mono text-xs px-2 py-0.5 border border-level-green/40 text-level-green rounded-sm">
-        RESOLVED
+      <span className="font-mono text-sm px-2 py-0.5 border-2 border-green-900 text-green-500 bg-black/40 pixel-border-stone uppercase font-bold">
+        ELIMINATED
       </span>
     );
   }
   if (current_level >= 8) {
     return (
-      <span className="font-mono text-xs px-2 py-0.5 border border-level-nuclear/40 text-level-nuclear pulse-nuclear rounded-sm glow-nuclear">
-        NUCLEAR
+      <span className="font-mono text-sm px-2 py-0.5 border-2 border-red-900 text-red-500 bg-black/40 pixel-border-stone animate-pulse uppercase font-bold text-shadow-pixel">
+        REDSTONE OVERLOAD
       </span>
     );
   }
   if (status === "active") {
     return (
       <span
-        className={`font-mono text-xs px-2 py-0.5 border rounded-sm pulse-red ${getLevelColorClass(current_level)}`}
+        className={`font-mono text-sm px-2 py-0.5 border-2 bg-black/40 pixel-border-stone uppercase font-bold ${getLevelColorClass(current_level)}`}
       >
-        ACTIVE L{current_level}
+        ENGAGED L{current_level}
       </span>
     );
   }
   return (
-    <span className="font-mono text-xs px-2 py-0.5 border border-level-yellow/40 text-level-yellow pulse-yellow rounded-sm">
-      MONITORING
+    <span className="font-mono text-sm px-2 py-0.5 border-2 border-stone-800 text-stone-500 bg-black/40 pixel-border-stone uppercase font-bold">
+      STALKING
     </span>
   );
 }
@@ -67,23 +67,23 @@ function RowTooltip({
   if (escalation.status === "resolved") return null;
 
   return (
-    <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 z-50 opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none group-hover:pointer-events-auto">
-      <div className="bg-surface border border-border rounded-sm px-4 py-3 shadow-2xl whitespace-nowrap">
-        <p className="font-mono text-[10px] text-muted mb-2">
-          Would you like Karen to send a reminder?
+    <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-4 z-50 opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none group-hover:pointer-events-auto">
+      <div className="bg-stone-900 pixel-border-stone px-6 py-4 shadow-2xl whitespace-nowrap">
+        <p className="font-mono text-sm text-stone-400 mb-3 uppercase font-bold">
+          FURTHER ESCALATION REQUIRED?
         </p>
-        <div className="flex gap-2">
+        <div className="flex gap-4">
           <button
             onClick={() => onQuickEscalate(escalation.id)}
-            className="font-mono text-[10px] px-2 py-1 border border-karen/40 text-karen hover:bg-karen/10 transition-colors rounded-sm"
+            className="font-mono text-sm px-4 py-2 bg-red-800 text-white hover:bg-red-700 transition-colors pixel-border-stone uppercase font-bold"
           >
-            Yes, do it
+            EXECUTE
           </button>
           <button
             onClick={() => onQuickEscalate(escalation.id)}
-            className="font-mono text-[10px] px-2 py-1 border border-level-red/40 text-level-red hover:bg-level-red/10 transition-colors rounded-sm"
+            className="font-mono text-sm px-4 py-2 bg-stone-800 text-stone-500 hover:bg-stone-700 transition-colors pixel-border-stone uppercase font-bold"
           >
-            Karen will do it anyway
+            NEVER STOP
           </button>
         </div>
       </div>
@@ -91,30 +91,28 @@ function RowTooltip({
   );
 }
 
-// ─── Pre-compute row heights with pretext ─────────────────────────────
+// ─── Pre-compute row metrics using pretext ─────────────────────────────
 function computeRowMetrics(
   escalations: Escalation[],
   containerWidth: number
 ): RowMetrics[] {
   if (escalations.length === 0 || containerWidth === 0) return [];
 
-  // Column widths approximation (matching the grid: 8% 18% 10% 34% 10% 20%)
-  const detailColWidth = Math.max(containerWidth * 0.34 - 32, 80); // minus padding
-  const lineHeight = 16; // text-xs line-height
+  const detailColWidth = Math.max(containerWidth * 0.34 - 32, 80);
+  const lineHeight = 20;
   const metrics: RowMetrics[] = [];
   let currentY = 0;
 
   for (const esc of escalations) {
     const text = esc.grievance_detail || "---";
 
-    let contentHeight = lineHeight; // minimum one line
+    let contentHeight = lineHeight;
     try {
       const prepared = prepare(text, ROW_FONT);
       const result = layout(prepared, detailColWidth, lineHeight);
       contentHeight = Math.max(result.height, lineHeight);
     } catch {
-      // Fallback: estimate based on character count
-      const charsPerLine = Math.max(Math.floor(detailColWidth / 7.2), 1);
+      const charsPerLine = Math.max(Math.floor(detailColWidth / 9), 1);
       const lines = Math.ceil(text.length / charsPerLine);
       contentHeight = lines * lineHeight;
     }
@@ -141,9 +139,8 @@ function VirtualRow({
 
   return (
     <div
-      className={`group absolute left-0 right-0 border-b border-border hover:bg-surface/50 transition-colors ${
-        isResolved ? "line-through opacity-60" : ""
-      }`}
+      className={`group absolute left-0 right-0 border-b-2 border-stone-900 hover:bg-stone-800/30 transition-colors ${isResolved ? "line-through opacity-40 grayscale" : ""
+        }`}
       style={{
         top: metrics.y,
         height: metrics.height,
@@ -151,23 +148,23 @@ function VirtualRow({
     >
       <div className="relative grid grid-cols-[8%_18%_10%_34%_10%_20%] items-center h-full">
         {/* Ref */}
-        <div className="font-mono text-xs px-4 text-muted">
+        <div className="font-mono text-sm px-4 text-stone-600 font-bold uppercase">
           #{escalation.id.slice(0, 6)}
         </div>
         {/* Name */}
-        <div className="font-mono text-xs px-4">
+        <div className="font-mono text-lg px-4 text-white uppercase font-bold tracking-tight">
           {escalation.target.name}
         </div>
         {/* Amount */}
-        <div className="font-mono text-xs px-4 text-karen">
+        <div className="font-mono text-lg px-4 text-red-500 font-bold">
           {escalation.amount ? `$${escalation.amount}` : "---"}
         </div>
-        {/* Detail — this is the column that drives variable height */}
-        <div className="font-mono text-xs px-4 text-muted break-words">
+        {/* Detail */}
+        <div className="font-mono text-sm px-4 text-stone-400 break-words font-bold uppercase leading-tight">
           {escalation.grievance_detail}
         </div>
         {/* Level */}
-        <div className="font-mono text-xs px-4">
+        <div className="font-mono text-lg px-4 font-bold">
           <span className={getLevelColorClass(escalation.current_level)}>
             {escalation.current_level}/{escalation.max_level}
           </span>
@@ -195,7 +192,6 @@ export function OpenMattersTable({ escalations }: OpenMattersTableProps) {
   const [viewportHeight, setViewportHeight] = useState(600);
   const [containerWidth, setContainerWidth] = useState(0);
 
-  // Rotating quotes
   useEffect(() => {
     const interval = setInterval(() => {
       setQuoteIndex((i) => (i + 1) % KAREN_QUOTES.length);
@@ -203,39 +199,30 @@ export function OpenMattersTable({ escalations }: OpenMattersTableProps) {
     return () => clearInterval(interval);
   }, []);
 
-  // Track container width for pretext layout
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
-
     const measure = () => setContainerWidth(el.clientWidth);
     measure();
-
     const ro = new ResizeObserver(measure);
     ro.observe(el);
     return () => ro.disconnect();
   }, []);
 
-  // Track scroll position and viewport
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
-
     setViewportHeight(el.clientHeight);
-
     const onScroll = () => setScrollTop(el.scrollTop);
     el.addEventListener("scroll", onScroll, { passive: true });
-
     const ro = new ResizeObserver(() => setViewportHeight(el.clientHeight));
     ro.observe(el);
-
     return () => {
       el.removeEventListener("scroll", onScroll);
       ro.disconnect();
     };
   }, []);
 
-  // Pre-compute all row metrics using pretext
   const rowMetrics = useMemo(
     () => computeRowMetrics(escalations, containerWidth),
     [escalations, containerWidth]
@@ -247,47 +234,32 @@ export function OpenMattersTable({ escalations }: OpenMattersTableProps) {
     return last.y + last.height;
   }, [rowMetrics]);
 
-  // Binary search for visible range with overscan
   const visibleRange = useMemo(() => {
     if (rowMetrics.length === 0) return { start: 0, end: 0 };
-
     const top = Math.max(0, scrollTop - OVERSCAN_PX);
     const bottom = scrollTop + viewportHeight + OVERSCAN_PX;
-
-    // Binary search: first row whose bottom edge >= top
     let lo = 0;
     let hi = rowMetrics.length - 1;
     while (lo < hi) {
       const mid = (lo + hi) >>> 1;
-      if (rowMetrics[mid].y + rowMetrics[mid].height < top) {
-        lo = mid + 1;
-      } else {
-        hi = mid;
-      }
+      if (rowMetrics[mid].y + rowMetrics[mid].height < top) lo = mid + 1;
+      else hi = mid;
     }
     const start = lo;
-
-    // Binary search: last row whose top edge <= bottom
     lo = start;
     hi = rowMetrics.length - 1;
     while (lo < hi) {
       const mid = (lo + hi + 1) >>> 1;
-      if (rowMetrics[mid].y > bottom) {
-        hi = mid - 1;
-      } else {
-        lo = mid;
-      }
+      if (rowMetrics[mid].y > bottom) hi = mid - 1;
+      else lo = mid;
     }
-    const end = lo + 1;
-
-    return { start, end };
+    return { start, end: lo + 1 };
   }, [rowMetrics, scrollTop, viewportHeight]);
 
   const onQuickEscalate = useCallback(
     async (id: string) => {
       const esc = escalations.find((e) => e.id === id);
       if (!esc) return;
-
       try {
         const res = await fetch(`${API_URL}/api/trigger`, {
           method: "POST",
@@ -303,19 +275,15 @@ export function OpenMattersTable({ escalations }: OpenMattersTableProps) {
             max_level: 1,
           }),
         });
-
         if (res.ok) {
           const data = await res.json();
           window.location.href = `/escalation/${data.id}`;
         }
-      } catch {
-        // silent — Karen will try again
-      }
+      } catch { }
     },
     [escalations]
   );
 
-  // Stats
   const totalMatters = escalations.length;
   const totalOutstanding = escalations
     .filter((e) => e.status !== "resolved")
@@ -324,62 +292,55 @@ export function OpenMattersTable({ escalations }: OpenMattersTableProps) {
   const avgDays =
     resolved.length > 0
       ? Math.round(
-          resolved.reduce((sum, e) => {
-            const start = new Date(e.started_at).getTime();
-            const end = new Date(e.resolved_at ?? e.started_at).getTime();
-            return sum + (end - start) / 86400000;
-          }, 0) / resolved.length
-        )
+        resolved.reduce((sum, e) => {
+          const start = new Date(e.started_at).getTime();
+          const end = new Date(e.resolved_at ?? e.started_at).getTime();
+          return sum + (end - start) / 86400000;
+        }, 0) / resolved.length
+      )
       : 0;
 
-  // Visible slice
-  const visibleEscalations = escalations.slice(
-    visibleRange.start,
-    visibleRange.end
-  );
-  const visibleMetrics = rowMetrics.slice(
-    visibleRange.start,
-    visibleRange.end
-  );
+  const visibleEscalations = escalations.slice(visibleRange.start, visibleRange.end);
+  const visibleMetrics = rowMetrics.slice(visibleRange.start, visibleRange.end);
 
   return (
     <div ref={containerRef}>
       {/* Header stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         {[
-          { label: "Total matters", value: totalMatters },
-          { label: "Total outstanding", value: `$${totalOutstanding}` },
-          { label: "Avg resolution", value: `${avgDays}d` },
-          { label: "Currently escaping Karen", value: "0" },
+          { label: "LOGGED GRIEVANCES", value: totalMatters },
+          { label: "UNCLAIMED BOUNTIES", value: `$${totalOutstanding}` },
+          { label: "AVG ELIMINATION", value: `${avgDays}D` },
+          { label: "EVADING KAREN", value: "0" },
         ].map(({ label, value }) => (
           <div
             key={label}
-            className="border border-border bg-surface rounded-sm p-4"
+            className="pixel-border-obsidian bg-obsidian p-6 shadow-xl"
           >
-            <p className="font-mono text-[10px] text-muted uppercase tracking-wider">
+            <p className="font-mono text-sm text-stone-500 uppercase font-bold tracking-tight mb-1">
               {label}
             </p>
-            <p className="font-display text-2xl font-bold mt-1">{value}</p>
+            <p className="font-display text-4xl font-bold uppercase tracking-tighter text-white text-shadow-pixel">{value}</p>
           </div>
         ))}
       </div>
 
       {/* Rotating quote */}
-      <p className="font-mono text-xs text-karen/80 text-center mb-6 h-4 transition-opacity duration-500">
-        &ldquo;{KAREN_QUOTES[quoteIndex]}&rdquo;
+      <p className="font-mono text-xl text-red-600/80 text-center mb-8 h-6 transition-opacity duration-500 uppercase font-bold italic tracking-tighter">
+        &ldquo;{KAREN_QUOTES[quoteIndex].toUpperCase()}&rdquo;
       </p>
 
       {/* Masonry virtual-scrolled table */}
-      <div className="border border-border rounded-sm overflow-hidden">
+      <div className="pixel-border-obsidian bg-obsidian overflow-hidden shadow-2xl">
         {/* Sticky column headers */}
         <div
-          className="grid grid-cols-[8%_18%_10%_34%_10%_20%] border-b border-border bg-surface"
+          className="grid grid-cols-[8%_18%_10%_34%_10%_20%] border-b-4 border-black bg-stone-900"
           style={{ height: HEADER_HEIGHT }}
         >
-          {["Ref", "Name", "Amount", "Detail", "Level", "Status"].map((h) => (
+          {["ID", "TARGET", "BOUNTY", "GRIEVANCE", "PHASE", "STATUS"].map((h) => (
             <div
               key={h}
-              className="font-mono text-[10px] text-muted uppercase tracking-wider text-left px-4 flex items-center"
+              className="font-mono text-sm text-stone-500 uppercase font-bold tracking-tight text-left px-4 flex items-center"
             >
               {h}
             </div>
@@ -389,12 +350,12 @@ export function OpenMattersTable({ escalations }: OpenMattersTableProps) {
         {/* Scrollable virtual viewport */}
         <div
           ref={scrollRef}
-          className="overflow-y-auto"
+          className="overflow-y-auto custom-scrollbar"
           style={{ maxHeight: "70vh" }}
         >
           {escalations.length === 0 ? (
-            <div className="px-4 py-8 text-center font-mono text-xs text-muted">
-              No matters on record. Karen is idle. For now.
+            <div className="px-4 py-12 text-center font-mono text-xl text-stone-600 uppercase font-bold">
+              THE LOGS ARE EMPTY. KAREN IS HUNGRY. FOR NOW.
             </div>
           ) : (
             <div className="relative" style={{ height: totalHeight }}>
