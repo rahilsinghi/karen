@@ -127,14 +127,48 @@ function EscalationPageInner({ id }: { id: string }) {
         </aside>
 
         {/* Center: The Tower */}
-        <main className={`relative flex flex-col items-center justify-center min-h-0 ${currentLevel >= 8 ? "threat-shake" : ""}`}>
-          <div className="w-full max-w-lg h-full flex flex-col justify-center gap-6">
+        <main className={`relative flex flex-col min-h-0 ${currentLevel >= 8 ? "threat-shake" : ""}`}>
+          <div className="w-full max-w-lg mx-auto h-full flex flex-col gap-6 overflow-y-auto custom-scrollbar py-4">
             <EscalationTower currentLevel={currentLevel} />
 
             {researchEvents.length > 0 && (
               <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}>
                 <StonePanel title="INTEL GATHERED" eyebrow="OSINT">
-                  <ResearchAnimation events={events} />
+                  <div className="max-h-48 overflow-y-auto custom-scrollbar">
+                    <ResearchAnimation events={events} />
+                  </div>
+                </StonePanel>
+              </motion.div>
+            )}
+
+            {deescalationEvents.length > 0 && (
+              <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}>
+                <StonePanel title="DE-ESCALATION SEQUENCE" eyebrow="REVERSAL">
+                  <div className="space-y-2">
+                    {deescalationEvents.map((e, i) => e.type === "deescalation_step" && (
+                      <motion.div
+                        key={i}
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: i * 0.1 }}
+                        className={`flex items-center gap-3 p-2 border-2 rounded ${
+                          e.status === "ok"
+                            ? "border-green-800 bg-green-950/30"
+                            : "border-red-800 bg-red-950/30"
+                        }`}
+                      >
+                        <span className="text-lg">{e.status === "ok" ? "✓" : "✗"}</span>
+                        <div className="flex-1">
+                          <div className={`font-mono text-[0.7rem] font-bold uppercase ${e.status === "ok" ? "text-green-400" : "text-red-400"}`}>
+                            {e.action}
+                          </div>
+                          {e.karen_note && (
+                            <div className="font-mono text-[0.6rem] text-stone-400 italic mt-0.5">{e.karen_note}</div>
+                          )}
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
                 </StonePanel>
               </motion.div>
             )}
@@ -143,7 +177,7 @@ function EscalationPageInner({ id }: { id: string }) {
 
         {/* Right Sidebar: Karen Presence */}
         <aside className="relative flex flex-col gap-4 overflow-hidden">
-          <div className="flex-1 flex flex-col gap-4 min-h-0">
+          <div className="flex-1 flex flex-col gap-4 min-h-0 overflow-y-auto custom-scrollbar">
             <KarenBossCard
               escalation={escalation}
               events={events}

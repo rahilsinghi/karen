@@ -368,7 +368,7 @@ async def _run_ladder(escalation_id: str) -> None:
         # WhatsApp first, then voice call initiated without waiting
         generated = None
         for channel in channels_for_level:
-            if channel not in available and channel not in ("discord", "github", "slack", "research"):
+            if channel not in available and channel not in ("discord", "github", "slack", "research", "fedex"):
                 _emit(escalation_id, {
                     "type": "level_skipped",
                     "level": level,

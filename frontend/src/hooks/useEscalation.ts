@@ -27,6 +27,7 @@ const REFRESH_EVENTS = new Set([
   "level_complete",
   "response_detected",
   "payment_detected",
+  "deescalation_step",
   "complete",
 ]);
 
