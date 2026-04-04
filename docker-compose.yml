@@ -1,0 +1,26 @@
+services:
+  openclaw:
+    image: ghcr.io/openclaw/openclaw:latest
+    ports:
+      - "18789:18789"
+      - "18790:18790"
+    volumes:
+      - ./.openclaw-data:/home/node/.openclaw
+      - ./openclaw:/home/node/.openclaw/workspace
+    environment:
+      - OPENCLAW_GATEWAY_PORT=18789
+      - OPENCLAW_BRIDGE_PORT=18790
+    restart: unless-stopped
+
+  backend:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./backend/.env
+    volumes:
+      - ./backend:/app
+      - ./openclaw:/openclaw
+    depends_on:
+      - openclaw
+    restart: unless-stopped

@@ -1,0 +1,35 @@
+# env files
+.env
+.env.local
+.env.production
+
+# dependencies
+node_modules/
+__pycache__/
+*.pyc
+.venv/
+
+# build
+.next/
+out/
+dist/
+build/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker / OpenClaw runtime data
+.openclaw-data/
+
+# misc
+*.log
+
+# loose audio source files (copies live in backend/audio/)
+/jazz_lounge_elevator_music.mp3
