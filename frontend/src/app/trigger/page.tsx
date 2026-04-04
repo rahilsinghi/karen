@@ -8,6 +8,7 @@ import { RitualButton } from "@/components/RitualButton";
 import { OpenClawCoreCard } from "@/components/OpenClawCoreCard";
 import { channelUnlocks, personalityScripts } from "@/lib/fortress-data";
 import { useCircle } from "@/hooks/useCircle";
+import { motion } from "framer-motion";
 import type { EscalationSpeed, Personality } from "@/lib/types";
 
 const personalities: Personality[] = ["passive_aggressive", "corporate", "genuinely_concerned", "life_coach"];
@@ -32,6 +33,7 @@ export default function TriggerPage() {
   const [maxLevel, setMaxLevel] = useState(6);
   const [submitting, setSubmitting] = useState(false);
   const [useGameMode, setUseGameMode] = useState(true);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
 
   useEffect(() => {
     if (members.length > 0 && !members.some((m) => m.id === initiator)) {
@@ -41,8 +43,24 @@ export default function TriggerPage() {
 
   const preview = useMemo(() => personalityScripts[personality], [personality]);
 
+  const fillDemo = () => {
+    const targetMember = members.find(m => m.id !== initiator);
+    setTarget(targetMember?.id || "");
+    setGrievanceType("communication");
+    setGrievanceDetail("Ghosted the last 3 ritual invites and didn't even react with a lobster emoji.");
+    setPlatform("discord");
+    setDaysSinceLastResponse("7");
+    setPersonality("passive_aggressive");
+  };
+
   async function launch() {
     if (!target || !grievanceDetail) return;
+
+    if (!showConfirmModal) {
+      setShowConfirmModal(true);
+      return;
+    }
+
     setSubmitting(true);
     try {
       let detail = grievanceDetail;
@@ -79,6 +97,7 @@ export default function TriggerPage() {
       }
     } finally {
       setSubmitting(false);
+      setShowConfirmModal(false);
     }
   }
 
@@ -89,6 +108,72 @@ export default function TriggerPage() {
       rightSidebar={<OpenClawCoreCard status="CONSULTING" />}
       bottomZone={<RitualButton label="UNLEASH KAREN 🦞" subtitle="THE LOBSTER AWAKENS" variant="primary" className="min-h-[7rem]" disabled={submitting || !target || !grievanceDetail} onClick={launch} />}
     >
+      {showConfirmModal && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/98 backdrop-blur-md">
+          {/* Background Dungeons */}
+          <div className="absolute inset-0 z-0 opacity-40 bg-cover bg-center" style={{ backgroundImage: 'url("/dungeon_bg.png")' }} />
+
+          {/* Darkness Vignette */}
+          <div className="absolute inset-0 z-10 bg-radial-gradient(circle, transparent 20%, black 85%) pointer-events-none" />
+
+          <div className="relative w-full max-w-xl px-4 flex flex-col items-center justify-center z-20">
+            <div className="mc-container relative w-full p-10 text-center bg-[#c6c6c6] shadow-[0_0_100px_rgba(239,68,68,0.3)]">
+              {/* Abort Cross */}
+              <button
+                onClick={() => setShowConfirmModal(false)}
+                className="absolute top-4 right-4 z-[210] flex h-10 w-10 items-center justify-center rounded-full bg-red-950 border-4 border-red-600 text-white hover:bg-red-600 transition-all shadow-[0_0_20px_rgba(255,0,0,0.2)]"
+                aria-label="Abort"
+              >
+                <span className="pixel-text text-xl mt-1">✕</span>
+              </button>
+
+              <div className="mb-8 flex justify-center">
+                <motion.div
+                  animate={{
+                    filter: ["drop-shadow(0 0 5px #ef4444)", "drop-shadow(0 0 20px #ef4444)", "drop-shadow(0 0 5px #ef4444)"]
+                  }}
+                  transition={{ repeat: Infinity, duration: 2 }}
+                  className="text-6xl"
+                >
+                  🦀
+                </motion.div>
+              </div>
+              <h1 className="mc-font-pixel text-3xl mb-8 text-black tracking-tight">UNSEAL THE SONIC ARCHIVE</h1>
+
+              <motion.button
+                initial={{ x: 0, y: 0 }}
+                animate={{
+                  x: [-4, 4, -3, 3, -2, 2, 0],
+                  y: [1.5, -1.5, 0],
+                }}
+                transition={{
+                  repeat: Infinity,
+                  duration: 0.2,
+                  ease: "linear"
+                }}
+                onClick={launch}
+                className="group relative w-full border-[12px] border-red-600 bg-red-950/90 py-10 overflow-hidden shadow-[0_0_120px_rgba(255,0,0,0.6)] active:scale-95"
+              >
+                <div className="absolute inset-0 bg-gradient-to-t from-red-600/20 to-transparent" />
+                <span className="block font-display text-4xl md:text-5xl leading-none text-white tracking-widest translate-y-1 relative z-10">
+                  UNLEASH
+                </span>
+                <div className="mt-2 mc-font-pixel text-[0.65rem] text-red-200 relative z-10">ESTABLISH RESONANCE</div>
+              </motion.button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="flex justify-end p-2">
+        <button
+          onClick={fillDemo}
+          className="mc-button px-6 h-10 text-[0.6rem] bg-indigo-900 border-indigo-500 hover:bg-indigo-800"
+        >
+          ⚡ QUICK FILL FOR TEST
+        </button>
+      </div>
+
       <div className="grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
         <StonePanel title="TARGET SELECTOR" eyebrow="GRIEVANCE FORGE">
           <div className="grid gap-4 md:grid-cols-2">
@@ -212,11 +297,10 @@ export default function TriggerPage() {
                   <button
                     key={option}
                     onClick={() => setPersonality(option)}
-                    className={`p-4 text-left cursor-pointer transition-all duration-150 border-4 ${
-                      selected
-                        ? "border-fortress-pink bg-fortress-pink/10 shadow-[0_0_20px_rgba(236,72,153,0.25)] scale-[1.02]"
-                        : "border-border bg-surface hover:border-fortress-pink/30 hover:bg-fortress-pink/5"
-                    }`}
+                    className={`p-4 text-left cursor-pointer transition-all duration-150 border-4 ${selected
+                      ? "border-fortress-pink bg-fortress-pink/10 shadow-[0_0_20px_rgba(236,72,153,0.25)] scale-[1.02]"
+                      : "border-border bg-surface hover:border-fortress-pink/30 hover:bg-fortress-pink/5"
+                      }`}
                   >
                     <div className="flex items-center gap-2">
                       <span className={`text-lg ${selected ? "opacity-100" : "opacity-30"}`}>
