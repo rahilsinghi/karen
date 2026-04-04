@@ -31,20 +31,13 @@ function GamePageInner({ id }: { id: string }) {
                             🦀
                         </motion.div>
                     </div>
-                    <h1 className="mc-font-pixel text-3xl mb-4 text-black tracking-tight">UNSEAL THE SONIC ARCHIVE</h1>
-                    <p className="mc-font-game text-lg mb-10 text-[#3f3f3f] leading-relaxed uppercase">
-                        THE KAREN ENTITY COMMUNICATES THROUGH VIBRATIONS.
-                        FAILING TO ENABLE RESONANCE WILL RESULT IN AN INCOMPLETE RITUAL.
-                    </p>
+                    <h1 className="mc-font-pixel text-3xl mb-8 text-black tracking-tight">UNSEAL THE SONIC ARCHIVE</h1>
                     <button
                         onClick={() => setAudioEnabled(true)}
                         className="mc-button w-full h-20 mc-font-pixel text-xl hover:scale-[1.02] active:scale-[0.98] transition-transform"
                     >
                         ESTABLISH RESONANCE
                     </button>
-                    <div className="mt-6 mc-font-pixel text-[0.6rem] text-stone-500 uppercase">
-                        Requires Audio Output Device // Unseal at your own risk
-                    </div>
                 </div>
 
                 <style jsx>{`
