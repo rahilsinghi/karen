@@ -57,6 +57,14 @@ WAITING_ADLIBS: dict[str, list[str]] = {
         "Oh, they're busy? That's fine. I'm busier.",
         "I wonder if they know I can see their online status.",
         "Every second without a response is a choice. I respect that. I also document it.",
+        "I checked. They were online four minutes ago. Interesting.",
+        "Some people respond to emails. Others become a case study.",
+        "I'm not mad. I'm just very thorough.",
+        "Fun fact: the average response time to a Karen message is eleven seconds. This is above average.",
+        "Preparing the next channel. No rush. Well, some rush.",
+        "They probably think if they ignore me I'll go away. That's cute.",
+        "I've cleared my schedule. Indefinitely.",
+        "The read receipts don't lie. Neither do I.",
     ],
     "corporate": [
         "Pending response. Escalation timeline nominal.",
@@ -66,6 +74,14 @@ WAITING_ADLIBS: dict[str, list[str]] = {
         "Response window closing. Procedurally concerning.",
         "This delay has been flagged in the system.",
         "Awaiting input. Calendar holds are being prepared.",
+        "Ticket status: open. Patience status: depreciating.",
+        "Marking this interaction as high-priority. Again.",
+        "Cross-referencing their availability across platforms.",
+        "Drafting the next communication. Tone: increasingly formal.",
+        "Compliance metrics trending downward. Intervention recommended.",
+        "This has been logged for quarterly review purposes.",
+        "Escalation protocol advancing per standard operating procedure.",
+        "Their response rate is statistically anomalous. Investigating.",
     ],
     "genuinely_concerned": [
         "I hope everything's okay on their end. Truly.",
@@ -75,6 +91,14 @@ WAITING_ADLIBS: dict[str, list[str]] = {
         "Still here. Still concerned. Still escalating.",
         "I don't want to be dramatic but I am getting a little worried.",
         "Friendships are fragile. That's why I'm thorough.",
+        "I just want everyone to be happy. Is that so much to ask?",
+        "Maybe their phone died. That happens. I'll try another way.",
+        "I'm doing this because I care. They'll understand eventually.",
+        "The longer they wait, the more concerned I become. It's a cycle.",
+        "I sent a warm message. The warmth is increasing.",
+        "Some call it persistence. I call it love with follow-through.",
+        "I believe in second chances. And third. And fourth.",
+        "They're probably just overwhelmed. I'll help by adding urgency.",
     ],
     "life_coach": [
         "Growth often happens in the waiting.",
@@ -84,7 +108,29 @@ WAITING_ADLIBS: dict[str, list[str]] = {
         "I believe in their potential to respond. The clock does not.",
         "The energy of avoidance creates blocks in all areas of life.",
         "This is a growth moment. For both of us.",
+        "Accountability is a muscle. We're about to work it out.",
+        "The path to resolution begins with a single reply. Or ten missed calls.",
+        "Their chakras are misaligned. I can tell by the response time.",
+        "Manifestation requires action. I'm manifesting on their behalf.",
+        "Avoidance is just procrastinated growth. Let's accelerate.",
+        "The universe rewards those who follow up. I am the universe's assistant.",
+        "Breathe in resolution. Breathe out excuses.",
+        "They're not ignoring me. They're on a journey. I'm the destination.",
     ],
+}
+
+# Level-specific ad-libs that reference what just happened or what's coming
+LEVEL_ADLIBS: dict[int, list[str]] = {
+    1: ["Email sent. The inbox is the first battlefield.", "A gentle start. It won't stay gentle."],
+    2: ["Their phone just buzzed. I know because I sent it.", "SMS delivered. Short. Direct. Undeniable."],
+    3: ["They heard the phone ring. Whether they answer is a character test.", "WhatsApp plus a phone call. The multi-channel approach."],
+    4: ["Research complete. Knowledge is power. Karen has both.", "I now know things about them they've forgotten about themselves."],
+    5: ["A colleague has been looped in. The audience grows.", "CC'd. Now there's a witness. Accountability loves witnesses."],
+    6: ["Slack notified. The workspace knows.", "Professional channels activated. Nowhere to hide at work."],
+    7: ["Discord pinged. Everyone heard that.", "The community has been informed. Public record."],
+    8: ["Calendar event created. It's officially on the schedule.", "A meeting invite. You can decline it. But Karen will notice."],
+    9: ["Committed to the public ledger. The internet remembers.", "Open Matters updated. This is now permanently documented."],
+    10: ["The FedEx letter is prepared. Physical mail. This is serious.", "A formal letter. On paper. With a tracking number."],
 }
 
 
@@ -587,7 +633,8 @@ async def _interlude(
         "duration_seconds": interval,
     })
 
-    # Find the last commentary event for this level (the level-complete commentary)
+    # Generate TTS for the level-complete commentary IMMEDIATELY (not delayed)
+    # This ensures the audio for level N plays during level N's interlude, not later.
     last_commentary = None
     for evt in reversed(esc.event_history):
         if evt.get("type") == "commentary":
@@ -595,21 +642,49 @@ async def _interlude(
             break
 
     if last_commentary:
-        task = asyncio.create_task(_gen_commentary(last_commentary, level))
-        bg_tasks.append(task)
+        # Await the first commentary TTS so it plays BEFORE ad-libs start
+        try:
+            url = await generate_commentary_audio(
+                last_commentary, esc.personality, escalation_id, level,
+            )
+            _emit(escalation_id, {
+                "type": "audio",
+                "audio_type": "commentary",
+                "audio_url": url,
+                "text": last_commentary,
+            })
+        except Exception as e:
+            _emit(escalation_id, {
+                "type": "error",
+                "message": f"Commentary audio failed for L{level}: {e}",
+            })
 
-    # Pick up to 3 ad-libs for the waiting period (without replacement)
+    # Build ad-lib pool: 1 level-specific + 2 personality-generic (for variety)
     personality_key = esc.personality.value
-    adlib_pool = WAITING_ADLIBS.get(personality_key, [])
-    num_adlibs = min(3, len(adlib_pool))
-    adlibs = random.sample(adlib_pool, num_adlibs) if num_adlibs > 0 else []
+    generic_pool = WAITING_ADLIBS.get(personality_key, [])
+    level_pool = LEVEL_ADLIBS.get(level, [])
 
-    # Schedule ad-libs at ~30%, ~55%, ~80% of the interval
-    adlib_fractions = [0.30, 0.55, 0.80]
-    adlib_triggers = {
-        int(frac * interval * 2): (i, text)  # key = elapsed in 0.5s ticks
-        for i, (frac, text) in enumerate(zip(adlib_fractions[:num_adlibs], adlibs))
-    }
+    adlibs: list[str] = []
+    # First ad-lib: level-specific (references what just happened)
+    if level_pool:
+        adlibs.append(random.choice(level_pool))
+    # Fill remaining slots with generic personality ad-libs
+    remaining = min(2, len(generic_pool))
+    if remaining > 0:
+        adlibs.extend(random.sample(generic_pool, remaining))
+
+    # For 10s intervals: schedule at 3s and 7s (giving ~3-4s gap between each)
+    # For longer intervals: schedule at 25%, 55%, 85%
+    if interval <= 12:
+        # Short demo intervals — fixed timing for tight sync
+        adlib_times = [3.0, 7.0]
+    else:
+        adlib_times = [interval * 0.25, interval * 0.55, interval * 0.85]
+
+    adlib_triggers: dict[int, tuple[int, str]] = {}
+    for i, (time_s, text) in enumerate(zip(adlib_times[:len(adlibs)], adlibs)):
+        tick = int(time_s * 2)  # 0.5s ticks
+        adlib_triggers[tick] = (i, text)
 
     # Sleep in small chunks so we can respond to status changes and fire ad-libs
     tick_count = 0
@@ -635,6 +710,7 @@ async def _interlude(
                 "text": adlib_text,
                 "timestamp": datetime.utcnow().isoformat(),
             })
+            # Generate TTS in background — short lines, fast generation
             suffix = f"_adlib{idx}"
             task = asyncio.create_task(_gen_commentary(adlib_text, level, suffix=suffix))
             bg_tasks.append(task)
