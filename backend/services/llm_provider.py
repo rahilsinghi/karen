@@ -72,17 +72,36 @@ class OllamaProvider(LLMProvider):
 
 
 _provider: LLMProvider | None = None
+_provider_name: str = ""
 
 
 def get_provider() -> LLMProvider:
     """Return the configured LLM provider (singleton)."""
-    global _provider
+    global _provider, _provider_name
     if _provider is None:
-        provider_type = os.environ.get("AI_PROVIDER", "anthropic")
-        if provider_type == "anthropic":
+        _provider_name = os.environ.get("AI_PROVIDER", "anthropic")
+        if _provider_name == "anthropic":
             _provider = AnthropicProvider()
-        elif provider_type == "local":
+        elif _provider_name == "local":
             _provider = OllamaProvider()
         else:
-            raise ValueError(f"Unknown AI_PROVIDER: {provider_type!r}. Use 'anthropic' or 'local'.")
+            raise ValueError(f"Unknown AI_PROVIDER: {_provider_name!r}. Use 'anthropic' or 'local'.")
     return _provider
+
+
+def get_provider_name() -> str:
+    """Return the current provider name ('anthropic' or 'local')."""
+    if _provider is None:
+        get_provider()  # initialize
+    return _provider_name
+
+
+def set_provider(name: str) -> None:
+    """Switch the active provider at runtime. Takes effect on next generate() call."""
+    global _provider, _provider_name
+    if name not in ("anthropic", "local"):
+        raise ValueError(f"Unknown provider: {name!r}. Use 'anthropic' or 'local'.")
+    _provider = None
+    _provider_name = name
+    os.environ["AI_PROVIDER"] = name
+    get_provider()  # eagerly initialize to surface errors immediately

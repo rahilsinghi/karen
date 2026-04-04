@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useCircle } from "@/hooks/useCircle";
+import { ProviderToggle } from "@/components/ProviderToggle";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function DashboardPage() {
@@ -52,8 +53,11 @@ export default function DashboardPage() {
 
         <div className="flex items-start gap-8">
           <div className="flex flex-col items-center gap-4">
-            <div className="px-8 py-3 bg-stone-950 border-4 border-red-900 shadow-[0_0_20px_rgba(255,0,0,0.4)]">
-              <span className="font-display text-base text-white tracking-widest animate-pulse">ACTIVE KAREN</span>
+            <div className="flex items-center gap-4">
+              <ProviderToggle />
+              <div className="px-8 py-3 bg-stone-950 border-4 border-red-900 shadow-[0_0_20px_rgba(255,0,0,0.4)]">
+                <span className="font-display text-base text-white tracking-widest animate-pulse">ACTIVE KAREN</span>
+              </div>
             </div>
           </div>
 
