@@ -29,7 +29,13 @@ export function useEventGameState(events: KarenEvent[], escalation: Escalation |
             status: "idle",
         }));
 
+        // Derive level from events (always up-to-date) with escalation as fallback
         let currentLevel = escalation?.current_level ?? 0;
+        for (const e of events) {
+            if ((e.type === "level_start" || e.type === "level_complete") && e.level > currentLevel) {
+                currentLevel = e.level;
+            }
+        }
         let isVictory = escalation?.status === "resolved";
         let responseDetected = false;
         let paymentDetected = false;

@@ -23,6 +23,7 @@ const EVENT_TYPES = [
 ] as const;
 
 const REFRESH_EVENTS = new Set([
+  "level_start",
   "level_complete",
   "response_detected",
   "payment_detected",

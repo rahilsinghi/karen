@@ -17,7 +17,17 @@ function EscalationPageInner({ id }: { id: string }) {
   const { escalation, events, connected, isComplete, continueAnyway, resolve, confirmPayment, audioEnabled, setAudioEnabled } = useEscalationContext();
   const router = useRouter();
 
-  const currentLevel = escalation?.current_level ?? 1;
+  // Derive current level from events as primary source (always up-to-date),
+  // fall back to escalation object (requires fetch roundtrip)
+  const currentLevel = useMemo(() => {
+    let maxLevel = 0;
+    for (const e of events) {
+      if ((e.type === "level_start" || e.type === "level_complete") && e.level > maxLevel) {
+        maxLevel = e.level;
+      }
+    }
+    return maxLevel || (escalation?.current_level ?? 1);
+  }, [events, escalation?.current_level]);
   const commentary = useMemo(() => buildCommentaryFeed(events, escalation), [events, escalation]);
   const nextCharge = `${Math.max(1, 11 - currentLevel)} pulses`;
   const responseDetected = events.some((event) => event.type === "response_detected");

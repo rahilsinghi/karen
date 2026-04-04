@@ -29,7 +29,15 @@ export const PixelArenaGame: React.FC<PixelArenaGameProps> = ({
             .find((e) => e.type === "commentary" || (e.type === "audio" && e.text)) as any;
     }, [events]);
 
-    const currentLevel = escalation?.current_level ?? 0;
+    const currentLevel = useMemo(() => {
+        let maxLevel = 0;
+        for (const e of events) {
+            if ((e.type === "level_start" || e.type === "level_complete") && e.level > maxLevel) {
+                maxLevel = e.level;
+            }
+        }
+        return maxLevel || (escalation?.current_level ?? 0);
+    }, [events, escalation?.current_level]);
     const isVictory = escalation?.status === "resolved";
     const isComplete = isVictory || escalation?.status === "resolved" || events.some(e => e.type === "complete");
     const responseDetected = events.some(e => e.type === "response_detected");
