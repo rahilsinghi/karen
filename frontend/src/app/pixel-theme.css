@@ -215,4 +215,8 @@
       inset 4px 4px 0 #666,
       inset -4px -4px 0 #222;
   }
+
+  .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+  .custom-scrollbar::-webkit-scrollbar-track { background: #0d0d0d; }
+  .custom-scrollbar::-webkit-scrollbar-thumb { background: #3a3a3a; border-radius: 3px; }
 }

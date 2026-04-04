@@ -1,23 +1,17 @@
 import type { Metadata } from "next";
-import { Syne, DM_Mono, DM_Sans } from "next/font/google";
+import { Silkscreen, VT323 } from "next/font/google";
 import "./globals.css";
 
-const syne = Syne({
+const silkscreen = Silkscreen({
   variable: "--font-display",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
+  weight: ["400", "700"],
 });
 
-const dmMono = DM_Mono({
+const vt323 = VT323({
   variable: "--font-mono",
   subsets: ["latin"],
-  weight: ["400", "500"],
-});
-
-const dmSans = DM_Sans({
-  variable: "--font-body",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: ["400"],
 });
 
 export const metadata: Metadata = {
@@ -33,7 +27,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${syne.variable} ${dmMono.variable} ${dmSans.variable} h-full antialiased`}
+      className={`${silkscreen.variable} ${vt323.variable} h-full antialiased`}
     >
       <body className="min-h-screen flex flex-col bg-bg text-text">
         <main className="flex-1">{children}</main>

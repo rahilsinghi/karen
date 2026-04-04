@@ -162,6 +162,18 @@ function EscalationPageInner({ id }: { id: string }) {
             </div>
           </motion.div>
         )}
+        {isPaymentDetected && !isResolved && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            className="bg-yellow-950/30 border-b-2 border-yellow-900 px-12 py-3 flex items-center justify-between z-40"
+          >
+            <p className="font-mono text-sm text-yellow-400 font-bold uppercase">
+              💰 PAYMENT INTERCEPTED. AWAITING OPERATOR COMMAND.
+            </p>
+            <button onClick={resolve} className="pixel-border-stone bg-yellow-700 text-white text-xs px-4 py-1 uppercase font-bold">INITIATE DE-ESCALATION</button>
+          </motion.div>
+        )}
       </AnimatePresence>
 
       {/* --- CENTER HERO AREA: THE TOWER --- */}
@@ -184,6 +196,37 @@ function EscalationPageInner({ id }: { id: string }) {
             </div>
           </div>
 
+          {/* Deescalation Steps */}
+          {events.some(e => e.type === "deescalation_step") && (
+            <div className="boss-frame-obsidian p-6 flex flex-col gap-3">
+              <h4 className="font-display text-sm text-green-600 font-bold uppercase">DE-ESCALATION SEQUENCE</h4>
+              <div className="space-y-2">
+                {events.filter(e => e.type === "deescalation_step").map((e, idx) => {
+                  if (e.type !== "deescalation_step") return null;
+                  const ok = e.status === "ok";
+                  return (
+                    <motion.div
+                      key={idx}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: idx * 0.1 }}
+                      className="flex items-start gap-2 border-l-2 pl-3"
+                      style={{ borderColor: ok ? "#16a34a" : "#dc2626" }}
+                    >
+                      <span className="text-sm">{ok ? "✓" : "✗"}</span>
+                      <div>
+                        <p className="font-mono text-[10px] text-stone-300 font-bold uppercase">{e.action}</p>
+                        {e.karen_note && (
+                          <p className="font-mono text-[9px] text-stone-500 italic">{e.karen_note}</p>
+                        )}
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           <div className="boss-frame-obsidian p-6">
             <h4 className="font-display text-sm text-stone-500 font-bold uppercase mb-4">COUNTERMEASURES</h4>
             <button
@@ -205,7 +248,10 @@ function EscalationPageInner({ id }: { id: string }) {
 
         {/* Right Side: Karen Boss Presence */}
         <div className="w-96 relative z-10">
-          <KarenBossCard commentary={escalation.last_commentary ?? "ANALYZING TARGET VULNERABILITIES..."} />
+          <KarenBossCard commentary={(() => {
+            const last = [...events].reverse().find(e => e.type === "commentary");
+            return last?.type === "commentary" ? last.text : "ANALYZING TARGET VULNERABILITIES...";
+          })()} />
         </div>
       </main>
 
