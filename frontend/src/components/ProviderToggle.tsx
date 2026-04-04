@@ -50,17 +50,24 @@ export function ProviderToggle() {
           : `Switch to ${isCloud ? "Local (Ollama)" : "Cloud (Anthropic)"}`
       }
       className={`
-        flex items-center gap-2 px-4 py-2 border-2 font-mono text-xs uppercase tracking-widest
+        flex items-center gap-3 px-3 py-1.5 border-2 font-mono text-[0.6rem] uppercase tracking-widest
         transition-all duration-200 select-none
         ${disabled ? "opacity-40 cursor-not-allowed" : "cursor-pointer hover:brightness-125 active:scale-95"}
-        ${isCloud
-          ? "bg-indigo-950/60 border-indigo-500/50 text-indigo-300"
-          : "bg-emerald-950/60 border-emerald-500/50 text-emerald-300"
-        }
+        border-stone-700 bg-stone-900/80
       `}
     >
-      <span className="text-base">{isCloud ? "☁️" : "🖥️"}</span>
-      <span>{switching ? "..." : isCloud ? "CLOUD" : "LOCAL"}</span>
+      <span className={`transition-colors ${isCloud ? "text-indigo-400" : "text-stone-600"}`}>☁️ CLOUD</span>
+      {/* Toggle track */}
+      <div className="relative w-8 h-4 bg-stone-800 border border-stone-600 rounded-full">
+        <div
+          className={`absolute top-0.5 w-3 h-3 rounded-full transition-all duration-200 ${
+            isCloud
+              ? "left-0.5 bg-indigo-400 shadow-[0_0_6px_rgba(129,140,248,0.6)]"
+              : "left-[calc(100%-14px)] bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.6)]"
+          }`}
+        />
+      </div>
+      <span className={`transition-colors ${!isCloud ? "text-emerald-400" : "text-stone-600"}`}>🖥️ LOCAL</span>
     </button>
   );
 }
