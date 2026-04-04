@@ -25,20 +25,20 @@ def get_available_channels(member: Member) -> list[str]:
 
     if _is_filled(c.email):
         channels.append("email")
+        channels.append("email_cc")
     if _is_filled(c.phone):
         channels.append("sms")
         channels.append("voice_call")
     if _is_filled(c.whatsapp):
         channels.append("whatsapp")
-    if _is_filled(c.linkedin):
-        channels.append("linkedin")
-    if _is_filled(c.twitter):
-        channels.append("twitter")
     if _is_filled(c.calendar):
         channels.append("calendar")
-    # Discord + GitHub are global — always available if env vars are set
+    # Discord, GitHub, Slack are global — always available if env vars are set
     channels.append("discord")
     channels.append("github")
+    channels.append("slack")
+    # Research is always available (pre-cached)
+    channels.append("research")
     if _is_filled(c.address):
         channels.append("fedex")
 
@@ -71,11 +71,11 @@ async def send_channel(
     """Dispatch a message to the appropriate channel."""
     dispatch = {
         "email": _send_email,
+        "email_cc": _send_email,  # Same handler, CC passed via cc_email param
         "sms": _send_sms,
         "whatsapp": _send_whatsapp,
         "voice_call": _send_voice_call,
-        "linkedin": _send_linkedin,
-        "twitter": _send_twitter,
+        "slack": _send_slack,
         "calendar": _send_calendar,
         "discord": _send_discord,
         "github": _send_github,
@@ -195,15 +195,14 @@ async def _send_voice_call(
         return ChannelResult("voice_call", False, "No phone number for target")
 
     body = html_escape(fields.get("body", ""), quote=True)
+    closing = "This was a message from Karen Automated Correspondence Systems. Goodbye."
 
     twiml = (
         "<Response>"
         '<Pause length="1"/>'
         f'<Say voice="Polly.Joanna">{body}</Say>'
         '<Pause length="1"/>'
-        '<Say voice="Polly.Joanna">'
-        "This was a message from Karen Automated Correspondence Systems. Goodbye."
-        "</Say>"
+        f'<Say voice="Polly.Joanna">{closing}</Say>'
         "</Response>"
     )
 
@@ -215,32 +214,21 @@ async def _send_voice_call(
                 "From": from_number,
                 "To": to_number,
                 "Twiml": twiml,
+                "MachineDetection": "DetectMessageEnd",
             },
         )
         resp.raise_for_status()
+        call_sid = resp.json().get("sid", "")
 
-    return ChannelResult("voice_call", True, f"Called {to_number}")
-
-
-# ── 5d. LinkedIn (placeholder — browser automation) ─────────────────────────
-
-
-async def _send_linkedin(
-    target: Member,
-    fields: dict[str, str],
-    _cc_email: str | None = None,
-) -> ChannelResult:
-    # LinkedIn requires browser automation (Playwright).
-    # For demo: log the intent and return success.
-    # Full implementation: headless Chrome → login → send InMail.
     return ChannelResult(
-        "linkedin",
+        "voice_call",
         True,
-        f"InMail queued for {target.contacts.linkedin}: {fields.get('subject', '')}",
+        f"Call initiated to {to_number} (fire-and-forget)",
+        metadata={"voice_call_sid": call_sid},
     )
 
 
-# ── 5e. Google Calendar ─────────────────────────────────────────────────────
+# ── Google Calendar ─────────────────────────────────────────────────────────
 
 
 async def _send_calendar(
@@ -248,20 +236,37 @@ async def _send_calendar(
     fields: dict[str, str],
     _cc_email: str | None = None,
 ) -> ChannelResult:
-    creds_path = os.environ.get("GOOGLE_CALENDAR_CREDENTIALS", "")
-    if not creds_path:
-        return ChannelResult("calendar", False, "No calendar credentials configured")
+    from services.calendar_service import create_event
 
-    # Google Calendar API via service account
-    # Requires: google-auth, google-api-python-client (add to requirements when ready)
-    return ChannelResult(
-        "calendar",
-        True,
-        f"Event '{fields.get('title', '')}' created for {target.contacts.calendar}",
-    )
+    title = fields.get("title", "Discuss Outstanding Matter — Karen")
+    description = fields.get("description", "")
+    target_email = target.contacts.calendar
+
+    if not _is_filled(target_email):
+        return ChannelResult("calendar", False, "No calendar email for target")
+
+    success, detail, event_id = await create_event(target_email, title, description)
+    metadata = {"calendar_event_id": event_id} if event_id else {}
+    return ChannelResult("calendar", success, detail, metadata=metadata)
 
 
-# ── 5f. Discord ─────────────────────────────────────────────────────────────
+# ── Slack ──────────────────────────────────────────────────────────────────
+
+
+async def _send_slack(
+    target: Member,
+    fields: dict[str, str],
+    _cc_email: str | None = None,
+) -> ChannelResult:
+    from services.slack_service import post_message
+
+    text = fields.get("body", "")
+    success, detail, ts = await post_message(text)
+    metadata = {"slack_message_ts": ts} if ts else {}
+    return ChannelResult("slack", success, detail, metadata=metadata)
+
+
+# ── Discord ────────────────────────────────────────────────────────────────
 
 
 async def _send_discord(
@@ -350,68 +355,7 @@ async def _send_github(
     )
 
 
-# ── 5h. Twitter/X ───────────────────────────────────────────────────────────
-
-
-async def _send_twitter(
-    target: Member,
-    fields: dict[str, str],
-    _cc_email: str | None = None,
-) -> ChannelResult:
-    import base64
-    import hashlib
-    import hmac
-    import time
-    import urllib.parse
-    import uuid
-
-    api_key = os.environ["TWITTER_API_KEY"]
-    api_secret = os.environ["TWITTER_API_SECRET"]
-    access_token = os.environ["TWITTER_ACCESS_TOKEN"]
-    access_secret = os.environ["TWITTER_ACCESS_SECRET"]
-
-    url = "https://api.twitter.com/2/tweets"
-    tweet_text = fields.get("body", "")[:280]
-
-    # OAuth 1.0a signature
-    oauth_params = {
-        "oauth_consumer_key": api_key,
-        "oauth_nonce": uuid.uuid4().hex,
-        "oauth_signature_method": "HMAC-SHA1",
-        "oauth_timestamp": str(int(time.time())),
-        "oauth_token": access_token,
-        "oauth_version": "1.0",
-    }
-
-    params_to_sign = {**oauth_params}
-    param_string = "&".join(
-        f"{urllib.parse.quote(k, safe='')}={urllib.parse.quote(v, safe='')}"
-        for k, v in sorted(params_to_sign.items())
-    )
-    base_string = f"POST&{urllib.parse.quote(url, safe='')}&{urllib.parse.quote(param_string, safe='')}"
-    signing_key = f"{urllib.parse.quote(api_secret, safe='')}&{urllib.parse.quote(access_secret, safe='')}"
-    signature = base64.b64encode(
-        hmac.new(signing_key.encode(), base_string.encode(), hashlib.sha1).digest()
-    ).decode()
-    oauth_params["oauth_signature"] = signature
-
-    auth_header = "OAuth " + ", ".join(
-        f'{k}="{urllib.parse.quote(v, safe="")}"'
-        for k, v in sorted(oauth_params.items())
-    )
-
-    async with httpx.AsyncClient() as client:
-        resp = await client.post(
-            url,
-            headers={"Authorization": auth_header, "Content-Type": "application/json"},
-            json={"text": tweet_text},
-        )
-        resp.raise_for_status()
-
-    return ChannelResult("twitter", True, f"Tweet posted: {tweet_text[:50]}...")
-
-
-# ── 5i. FedEx (PDF + ship) ──────────────────────────────────────────────────
+# ── FedEx (PDF + ship) ────────────────────────────────────────────────────
 
 
 async def _send_fedex(
