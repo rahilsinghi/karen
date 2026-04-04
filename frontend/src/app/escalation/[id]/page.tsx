@@ -1,49 +1,21 @@
 "use client";
 
-import { Suspense, use, useEffect, useMemo, useState } from "react";
+import { Suspense, use, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { FortressLayout } from "@/components/FortressLayout";
 import { StonePanel } from "@/components/StonePanel";
-import { OpenClawCoreCard } from "@/components/OpenClawCoreCard";
 import { KarenBossCard } from "@/components/KarenBossCard";
 import { EscalationTower } from "@/components/EscalationTower";
 import { CommentaryLog } from "@/components/CommentaryLog";
 import { RitualButton } from "@/components/RitualButton";
-import { ThreatBadge } from "@/components/ThreatBadge";
-import { buildCommentaryFeed, levelTone } from "@/lib/fortress-data";
-import { useEscalation } from "@/hooks/useEscalation";
-import { useKarenAudio } from "@/hooks/useKarenAudio";
-import { useBackgroundMusic } from "@/hooks/useBackgroundMusic";
+import { buildCommentaryFeed } from "@/lib/fortress-data";
+import { useEscalationContext } from "@/contexts/EscalationContext";
 import { LevelTimeline } from "@/components/LevelTimeline";
 import { motion, AnimatePresence } from "framer-motion";
 import ResearchAnimation from "@/components/ResearchAnimation";
 
 function EscalationPageInner({ id }: { id: string }) {
-  const { escalation, events, connected, continueAnyway, resolve, confirmPayment } = useEscalation(id);
+  const { escalation, events, connected, isComplete, continueAnyway, resolve, confirmPayment, audioEnabled, setAudioEnabled } = useEscalationContext();
   const router = useRouter();
-  const [audioEnabled, setAudioEnabled] = useState(false);
-  const { start, stop, setLevel, duck, unduck } = useBackgroundMusic();
-
-  // Audio Hooks
-  useKarenAudio(events, {
-    enabled: audioEnabled,
-    onPlayStart: duck,
-    onPlayEnd: unduck,
-  });
-
-  useEffect(() => {
-    if (audioEnabled) {
-      void start();
-    } else {
-      stop();
-    }
-  }, [audioEnabled, start, stop]);
-
-  useEffect(() => {
-    if (audioEnabled) {
-      setLevel(escalation?.current_level ?? 1);
-    }
-  }, [audioEnabled, escalation?.current_level, setLevel]);
 
   const currentLevel = escalation?.current_level ?? 1;
   const commentary = useMemo(() => buildCommentaryFeed(events, escalation), [events, escalation]);

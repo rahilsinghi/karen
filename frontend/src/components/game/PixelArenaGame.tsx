@@ -31,6 +31,9 @@ export const PixelArenaGame: React.FC<PixelArenaGameProps> = ({
 
     const currentLevel = escalation?.current_level ?? 0;
     const isVictory = escalation?.status === "resolved";
+    const isComplete = isVictory || escalation?.status === "resolved" || events.some(e => e.type === "complete");
+    const responseDetected = events.some(e => e.type === "response_detected");
+    const paymentDetected = events.some(e => e.type === "payment_detected");
 
     return (
         <div className="fixed inset-0 z-50 bg-[#0c0a09] flex flex-col text-white font-mono overflow-hidden">
@@ -77,36 +80,46 @@ export const PixelArenaGame: React.FC<PixelArenaGameProps> = ({
             <div className="flex-1 flex overflow-hidden relative">
 
                 {/* LEFT HUD - STATUS */}
-                <div className="w-64 bg-[#141110] border-r-4 border-black p-4 flex flex-col gap-6 z-30 overflow-y-auto custom-scrollbar">
-                    <div className="mc-container p-3 border-2 border-stone-800 bg-black/40">
-                        <div className="text-[0.5rem] text-stone-500 mb-2 font-bold">USED CHANNELS</div>
+                <div className="w-64 bg-[#141110] border-r-4 border-black p-4 flex flex-col gap-4 z-30 overflow-y-auto custom-scrollbar">
+                    <div className="p-3 border-2 border-stone-700 bg-[#1a1816] rounded">
+                        <div className="text-[0.55rem] text-amber-400 mb-2 font-bold tracking-wider">USED CHANNELS</div>
                         <div className="flex flex-wrap gap-2">
                             {escalation?.channels_used.map((ch, i) => (
-                                <div key={i} className="px-2 py-1 bg-purple-900/40 border border-purple-500/50 text-[0.5rem] uppercase rounded">
+                                <div key={i} className="px-2 py-1 bg-purple-800/60 border border-purple-400/60 text-[0.55rem] text-purple-200 uppercase rounded font-bold">
                                     {ch}
                                 </div>
                             ))}
-                            {escalation?.channels_used.length === 0 && <span className="text-[0.5rem] text-stone-600">NONE YET</span>}
+                            {(!escalation?.channels_used || escalation.channels_used.length === 0) && <span className="text-[0.55rem] text-stone-500">NONE YET</span>}
                         </div>
                     </div>
 
-                    <div className="mc-container p-3 border-2 border-stone-800 bg-black/40 flex-1 flex flex-col">
-                        <div className="text-[0.5rem] text-stone-500 mb-2 font-bold uppercase">Commentary Log</div>
-                        <div className="flex-1 text-[0.65rem] text-stone-300 leading-tight space-y-3 overflow-y-auto pr-2 custom-scrollbar italic font-serif">
+                    <div className="p-3 border-2 border-stone-700 bg-[#1a1816] rounded flex-1 flex flex-col min-h-0">
+                        <div className="text-[0.55rem] text-amber-400 mb-2 font-bold tracking-wider uppercase">Commentary Log</div>
+                        <div className="flex-1 text-[0.7rem] text-stone-200 leading-relaxed space-y-3 overflow-y-auto pr-2 custom-scrollbar italic font-serif">
                             {events.filter(e => e.type === "commentary").slice(-5).map((e: any, i) => (
-                                <div key={i} className="border-l-2 border-stone-800 pl-2">
-                                    "{e.text}"
+                                <div key={i} className="border-l-2 border-amber-500/50 pl-2">
+                                    &ldquo;{e.text}&rdquo;
                                 </div>
                             ))}
+                            {events.filter(e => e.type === "commentary").length === 0 && (
+                                <div className="text-stone-500 text-[0.6rem] not-italic">Awaiting Karen&apos;s commentary...</div>
+                            )}
                         </div>
                     </div>
 
                     <div className="mt-auto space-y-2">
-                        <div className={`p-2 border-2 border-black text-[0.6rem] text-center font-bold tracking-widest ${escalation?.status === "response_detected" ? "bg-orange-900 border-orange-500 text-orange-200" : "bg-green-900 border-green-500 text-green-200"}`}>
-                            {escalation?.status === "response_detected" ? "RESPONSE DETECTED" : "OFFENSIVE POSTURE"}
+                        <div className={`p-2 border-2 text-[0.6rem] text-center font-bold tracking-widest rounded ${
+                            isComplete ? "bg-stone-800 border-stone-600 text-stone-400" :
+                            responseDetected ? "bg-orange-900 border-orange-500 text-orange-200" :
+                            "bg-green-900/80 border-green-500/80 text-green-200"
+                        }`}>
+                            {isComplete ? "MISSION COMPLETE" : responseDetected ? "RESPONSE DETECTED" : "OFFENSIVE POSTURE"}
                         </div>
-                        <div className={`p-2 border-2 border-black text-[0.6rem] text-center font-bold tracking-widest ${escalation?.status === "payment_detected" ? "bg-emerald-900 border-emerald-500 text-emerald-200" : "bg-stone-900 text-stone-600"}`}>
-                            {escalation?.status === "payment_detected" ? "TRIBUTE RECEIVED" : "NO TRIBUTE"}
+                        <div className={`p-2 border-2 text-[0.6rem] text-center font-bold tracking-widest rounded ${
+                            paymentDetected ? "bg-emerald-900 border-emerald-500 text-emerald-200" :
+                            "bg-stone-900 border-stone-700 text-stone-500"
+                        }`}>
+                            {paymentDetected ? "TRIBUTE RECEIVED" : "NO TRIBUTE"}
                         </div>
                     </div>
                 </div>
@@ -173,28 +186,37 @@ export const PixelArenaGame: React.FC<PixelArenaGameProps> = ({
 
                 {/* RIGHT HUD - DOSSIER / INTEL */}
                 <div className="w-80 bg-[#141110] border-l-4 border-black p-4 flex flex-col gap-4 z-30">
-                    <div className="mc-container p-4 border-2 border-stone-800 bg-black/40 h-full flex flex-col">
-                        <div className="text-[0.6rem] text-yellow-500 mb-2 font-bold uppercase flex items-center gap-2">
-                            <span className="w-2 h-2 bg-yellow-500 rounded-full animate-ping" />
+                    <div className="p-4 border-2 border-stone-700 bg-[#1a1816] rounded h-full flex flex-col">
+                        <div className="text-[0.6rem] text-amber-400 mb-3 font-bold uppercase flex items-center gap-2 tracking-wider">
+                            <span className="w-2 h-2 bg-amber-400 rounded-full animate-ping" />
                             BATTLE DOSSIER
                         </div>
-                        <div className="text-[0.7rem] text-stone-100 uppercase leading-relaxed h-32 overflow-y-auto custom-scrollbar">
-                            {escalation?.grievance_detail}
+                        <div className="text-[0.75rem] text-stone-100 uppercase leading-relaxed h-32 overflow-y-auto custom-scrollbar">
+                            {escalation?.grievance_detail ?? "Loading mission parameters..."}
                         </div>
 
-                        <div className="mt-8 pt-4 border-t border-stone-800">
-                            <div className="text-[0.5rem] text-stone-500 mb-2 uppercase">INITIATOR</div>
+                        <div className="mt-8 pt-4 border-t border-stone-700">
+                            <div className="text-[0.55rem] text-stone-400 mb-2 uppercase tracking-wider">INITIATOR</div>
                             <div className="flex items-center gap-3">
                                 <div className="w-10 h-10 bg-indigo-900 border-2 border-indigo-400 rounded flex items-center justify-center text-xl">
-                                    🤴
+                                    {escalation?.initiator.avatar_emoji ?? "🤴"}
                                 </div>
-                                <div className="text-sm font-bold uppercase">{escalation?.initiator.name}</div>
+                                <div className="text-sm font-bold uppercase text-white">{escalation?.initiator.name ?? "Loading..."}</div>
                             </div>
                         </div>
 
-                        <div className="mt-auto p-3 bg-red-950/20 border-2 border-red-900/50 text-[0.45rem] leading-normal text-red-300">
-                            <div className="font-bold mb-1 underline">MISSION DIRECTIVE</div>
-                            PERSIST UNTIL COMPLIANCE IS VERIFIED OR THE DEBT IS SATIATED BY FORCE. THE FORTRESS DOES NOT FORGIVE.
+                        <div className={`mt-auto p-3 border-2 rounded text-[0.5rem] leading-normal ${
+                            isComplete
+                                ? "bg-green-950/30 border-green-800/50 text-green-300"
+                                : "bg-red-950/30 border-red-900/50 text-red-300"
+                        }`}>
+                            <div className="font-bold mb-1 underline tracking-wider">
+                                {isComplete ? "STATUS: RESOLVED" : "MISSION DIRECTIVE"}
+                            </div>
+                            {isComplete
+                                ? "ALL MATTERS SETTLED. THE FORTRESS IS SATIATED. KAREN RESTS."
+                                : "PERSIST UNTIL COMPLIANCE IS VERIFIED OR THE DEBT IS SATIATED BY FORCE. THE FORTRESS DOES NOT FORGIVE."
+                            }
                         </div>
                     </div>
                 </div>
@@ -202,24 +224,36 @@ export const PixelArenaGame: React.FC<PixelArenaGameProps> = ({
 
             {/* BOTTOM HUD - ACTIONS */}
             <div className="h-24 bg-[#1c1917] border-t-4 border-black p-4 flex gap-6 items-center justify-center z-30 shadow-[0_-4px_20px_rgba(0,0,0,0.8)]">
-                <div className="flex gap-4">
-                    <button
-                        onClick={onContinue}
-                        disabled={isVictory}
-                        className="mc-button h-12 px-10 text-[0.65rem] font-bold bg-[#7f1d1d] hover:bg-[#991b1b] active:scale-[0.98] border-b-4 border-black disabled:opacity-30 flex flex-col items-center justify-center"
-                    >
-                        <span>CONTINUE ONSLAUGHT</span>
-                        <span className="text-[0.4rem] opacity-50">BYPASS DEFENSES</span>
-                    </button>
-                    <button
-                        onClick={onResolve}
-                        disabled={isVictory}
-                        className="mc-button h-12 px-10 text-[0.65rem] font-bold bg-[#27272a] hover:bg-[#3f3f46] active:scale-[0.98] border-b-4 border-black disabled:opacity-30 flex flex-col items-center justify-center"
-                    >
-                        <span>DE-ESCALATE</span>
-                        <span className="text-[0.4rem] opacity-50">ACCEPT OFFERING</span>
-                    </button>
-                </div>
+                {isComplete ? (
+                    <div className="flex items-center gap-6">
+                        <div className="text-green-400 text-[0.7rem] font-bold tracking-widest uppercase">
+                            MISSION COMPLETE — ALL LEVELS EXHAUSTED
+                        </div>
+                        <button
+                            onClick={onExit}
+                            className="mc-button h-12 px-10 text-[0.65rem] font-bold bg-stone-800 hover:bg-stone-700 active:scale-[0.98] border-b-4 border-black"
+                        >
+                            RETURN TO BASE
+                        </button>
+                    </div>
+                ) : (
+                    <div className="flex gap-4">
+                        <button
+                            onClick={onContinue}
+                            className="mc-button h-12 px-10 text-[0.65rem] font-bold bg-[#7f1d1d] hover:bg-[#991b1b] active:scale-[0.98] border-b-4 border-black flex flex-col items-center justify-center"
+                        >
+                            <span>CONTINUE ONSLAUGHT</span>
+                            <span className="text-[0.4rem] opacity-50">BYPASS DEFENSES</span>
+                        </button>
+                        <button
+                            onClick={onResolve}
+                            className="mc-button h-12 px-10 text-[0.65rem] font-bold bg-[#27272a] hover:bg-[#3f3f46] active:scale-[0.98] border-b-4 border-black flex flex-col items-center justify-center"
+                        >
+                            <span>DE-ESCALATE</span>
+                            <span className="text-[0.4rem] opacity-50">ACCEPT OFFERING</span>
+                        </button>
+                    </div>
+                )}
             </div>
 
             {/* VICTORY OVERLAY */}

@@ -15,6 +15,8 @@ export function useKarenAudio(events: KarenEvent[], options: UseKarenAudioOption
   const queueRef = useRef<string[]>([]);
   const playingRef = useRef(false);
   const lastProcessedRef = useRef(0);
+  const playedUrlsRef = useRef<Set<string>>(new Set());
+  const activeAudioRef = useRef<HTMLAudioElement | null>(null);
 
   // Use refs for callbacks to avoid stale closures
   const onPlayStartRef = useRef(onPlayStart);
@@ -49,10 +51,11 @@ export function useKarenAudio(events: KarenEvent[], options: UseKarenAudioOption
         .then((r) => r.blob())
         .then((blob) => {
           const audio = new Audio(URL.createObjectURL(blob));
+          activeAudioRef.current = audio;
           audio.volume = 0.9;
-          audio.onended = finish;
-          audio.onerror = finish;
-          audio.play().catch(finish);
+          audio.onended = () => { activeAudioRef.current = null; finish(); };
+          audio.onerror = () => { activeAudioRef.current = null; finish(); };
+          audio.play().catch(() => { activeAudioRef.current = null; finish(); });
         })
         .catch(finish);
     },
@@ -71,8 +74,12 @@ export function useKarenAudio(events: KarenEvent[], options: UseKarenAudioOption
     let added = false;
     for (const event of newEvents) {
       if (event.type === "audio" && event.audio_url) {
-        queueRef.current.push(event.audio_url);
-        added = true;
+        // Deduplicate — never play the same URL twice in one escalation
+        if (!playedUrlsRef.current.has(event.audio_url)) {
+          playedUrlsRef.current.add(event.audio_url);
+          queueRef.current.push(event.audio_url);
+          added = true;
+        }
       }
     }
 
@@ -83,8 +90,15 @@ export function useKarenAudio(events: KarenEvent[], options: UseKarenAudioOption
 
   useEffect(() => {
     return () => {
+      // Stop any actively playing audio on unmount
+      if (activeAudioRef.current) {
+        activeAudioRef.current.pause();
+        activeAudioRef.current.src = "";
+        activeAudioRef.current = null;
+      }
       queueRef.current = [];
       playingRef.current = false;
+      playedUrlsRef.current.clear();
     };
   }, []);
 }

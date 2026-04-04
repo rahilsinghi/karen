@@ -1,36 +1,14 @@
 "use client";
 
-import { use, useState } from "react";
+import { use } from "react";
 import { useRouter } from "next/navigation";
-import { useEscalation } from "@/hooks/useEscalation";
-import { KarenGameMode } from "@/components/game/KarenGameMode";
 import { PixelArenaGame } from "@/components/game/PixelArenaGame";
-import { useKarenAudio } from "@/hooks/useKarenAudio";
-import { useBackgroundMusic } from "@/hooks/useBackgroundMusic";
-import { useEffect } from "react";
-import { RitualButton } from "@/components/RitualButton";
+import { useEscalationContext } from "@/contexts/EscalationContext";
 import { motion } from "framer-motion";
 
 function GamePageInner({ id }: { id: string }) {
     const router = useRouter();
-    const { escalation, events, continueAnyway, resolve } = useEscalation(id);
-    const [audioEnabled, setAudioEnabled] = useState(false);
-    const { start, stop, setLevel, duck, unduck } = useBackgroundMusic();
-
-    useKarenAudio(events, {
-        enabled: audioEnabled,
-        onPlayStart: duck,
-        onPlayEnd: unduck,
-    });
-
-    useEffect(() => {
-        if (audioEnabled) void start();
-        else stop();
-    }, [audioEnabled, start, stop]);
-
-    useEffect(() => {
-        if (audioEnabled) setLevel(escalation?.current_level ?? 1);
-    }, [audioEnabled, escalation?.current_level, setLevel]);
+    const { escalation, events, continueAnyway, resolve, audioEnabled, setAudioEnabled } = useEscalationContext();
 
     if (!audioEnabled) {
         return (

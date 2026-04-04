@@ -65,22 +65,22 @@ export const KarenGameMode: React.FC<KarenGameModeProps> = ({
                 {/* Left Stats/Dossier + Level Timeline */}
                 <div className="w-1/4 flex flex-col bg-[#0c0a09] border-r-8 border-black overflow-hidden">
                     <div className="p-4 flex-shrink-0">
-                        <div className="mc-container p-4 flex flex-col gap-3">
-                            <div className="mc-font-pixel text-[0.68rem] text-muted border-b-2 border-black pb-2">Grievance Dossier</div>
-                            <div className="mc-font-game text-sm uppercase line-clamp-3">
+                        <div className="p-4 flex flex-col gap-3 border-2 border-stone-700 bg-[#1a1816] rounded">
+                            <div className="text-[0.68rem] text-amber-400 font-bold border-b-2 border-stone-700 pb-2 tracking-wider">GRIEVANCE DOSSIER</div>
+                            <div className="text-sm text-stone-100 uppercase line-clamp-3">
                                 {grievance}
                             </div>
                             <div className="flex gap-2 mt-1">
-                                <div className={`mc-font-game text-[0.6rem] text-center border-2 border-black px-2 py-1 flex-1 ${responseDetected ? "bg-red-800 text-red-200" : "bg-green-800 text-green-200"}`}>
+                                <div className={`text-[0.6rem] text-center border-2 px-2 py-1 flex-1 font-bold rounded ${responseDetected ? "bg-red-900 border-red-700 text-red-200" : "bg-green-900/80 border-green-700 text-green-200"}`}>
                                     {responseDetected ? "RESISTING" : "COMPLYING"}
                                 </div>
-                                <div className={`mc-font-game text-[0.6rem] text-center border-2 border-black px-2 py-1 flex-1 ${paymentDetected ? "bg-yellow-800 text-yellow-200" : "bg-black text-gray-500"}`}>
+                                <div className={`text-[0.6rem] text-center border-2 px-2 py-1 flex-1 font-bold rounded ${paymentDetected ? "bg-yellow-900 border-yellow-700 text-yellow-200" : "bg-stone-900 border-stone-700 text-stone-500"}`}>
                                     {paymentDetected ? "TRIBUTE" : "NO TRIBUTE"}
                                 </div>
                             </div>
                             {gameState.deescalationActive && (
-                                <div className="mc-container p-2 bg-indigo-900 border-indigo-400">
-                                    <div className="mc-font-pixel text-[0.5rem] mb-1 text-indigo-300">RITUAL REVERSAL</div>
+                                <div className="p-2 bg-indigo-900/80 border-2 border-indigo-500 rounded">
+                                    <div className="text-[0.5rem] mb-1 text-indigo-300 font-bold">RITUAL REVERSAL</div>
                                     <div className="flex gap-1">
                                         {Array.from({ length: 5 }).map((_, i) => (
                                             <motion.div

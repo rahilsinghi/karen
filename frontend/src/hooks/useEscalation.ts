@@ -33,20 +33,42 @@ export function useEscalation(escalationId: string | null) {
   const [events, setEvents] = useState<KarenEvent[]>([]);
   const [escalation, setEscalation] = useState<Escalation | null>(null);
   const [connected, setConnected] = useState(false);
+  const [loading, setLoading] = useState(true);
   const sourceRef = useRef<AbortController | null>(null);
   const reconnectTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastSeqRef = useRef(-1);
   const reconnectAttemptRef = useRef(0);
   const stableTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isTerminalRef = useRef(false);
 
   const fetchEscalation = useCallback(async () => {
     if (!escalationId) return;
     try {
       const res = await fetch(`${API_URL}/api/escalation/${escalationId}`, { headers: API_HEADERS });
-      if (res.ok) setEscalation(await res.json());
+      if (res.ok) {
+        const data = await res.json();
+        setEscalation(data);
+        // Mark terminal states so we stop aggressive reconnection
+        if (data.status === "resolved") {
+          isTerminalRef.current = true;
+        }
+      }
     } catch {
       // silent
+    } finally {
+      setLoading(false);
     }
+  }, [escalationId]);
+
+  // Reset state when escalation ID changes
+  useEffect(() => {
+    setEvents([]);
+    setEscalation(null);
+    setConnected(false);
+    setLoading(true);
+    lastSeqRef.current = -1;
+    reconnectAttemptRef.current = 0;
+    isTerminalRef.current = false;
   }, [escalationId]);
 
   useEffect(() => {
@@ -123,6 +145,8 @@ export function useEscalation(escalationId: string | null) {
             clearTimeout(stableTimerRef.current);
             stableTimerRef.current = null;
           }
+          // Don't aggressively reconnect for completed escalations
+          if (isTerminalRef.current) return;
           const attempt = reconnectAttemptRef.current;
           reconnectAttemptRef.current = attempt + 1;
           const delay = Math.min(2000 * Math.pow(2, attempt), 30000);
@@ -178,5 +202,7 @@ export function useEscalation(escalationId: string | null) {
     [escalationId, fetchEscalation]
   );
 
-  return { events, escalation, connected, continueAnyway, resolve, confirmPayment };
+  const isComplete = escalation?.status === "resolved" || events.some(e => e.type === "complete");
+
+  return { events, escalation, connected, loading, isComplete, continueAnyway, resolve, confirmPayment };
 }
