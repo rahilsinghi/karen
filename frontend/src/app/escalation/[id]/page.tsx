@@ -189,7 +189,7 @@ function EscalationPageInner({ id }: { id: string }) {
                 <div key={idx} className="border-l-2 border-red-900 pl-3">
                   <span className="block text-[8px] text-stone-600 font-mono italic">TIMESTAMP_{idx}</span>
                   <p className="text-[10px] text-stone-400 uppercase font-bold">
-                    {e.type.replace('_', ' ')}: {e.level ? `PHASE ${e.level}` : ''}
+                    {e.type.replace('_', ' ')}: {"level" in e && e.level ? `PHASE ${e.level}` : ''}
                   </p>
                 </div>
               ))}

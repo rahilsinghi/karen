@@ -56,7 +56,7 @@ export default function KarenLorePage() {
                 <span className={`font-display text-2xl font-bold w-8 text-right ${color}`}>
                   {level}
                 </span>
-                <span className="text-stone-700 font-bold">>>></span>
+                <span className="text-stone-700 font-bold">{">>>"}</span>
                 <span className="font-bold uppercase tracking-tighter group-hover:text-white transition-colors">{label}</span>
               </div>
             ))}
