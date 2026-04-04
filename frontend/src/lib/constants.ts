@@ -27,6 +27,11 @@ export const LEVEL_LABELS: Record<number, string> = {
   10: "FedEx Letter",
 };
 
+export const ESCALATION_LEVELS = Object.entries(LEVEL_LABELS).map(([level, label]) => ({
+  level: parseInt(level),
+  label,
+}));
+
 export const CHANNEL_ICONS: Record<string, string> = {
   email: "📧",
   email_cc: "📧",

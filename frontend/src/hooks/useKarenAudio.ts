@@ -5,71 +5,45 @@ import { API_URL } from "@/lib/constants";
 import type { KarenEvent } from "@/lib/types";
 
 interface UseKarenAudioOptions {
-  /** Called when a voice clip starts playing */
+  enabled?: boolean;
   onPlayStart?: () => void;
-  /** Called when a voice clip finishes playing */
   onPlayEnd?: () => void;
 }
 
-/**
- * Manages Karen's voice audio playback — quips and commentary.
- * Queues clips so they play sequentially (quip first, then commentary).
- * Emits play start/end callbacks for music ducking.
- */
-export function useKarenAudio(
-  events: KarenEvent[],
-  options: UseKarenAudioOptions = {}
-) {
-  const { onPlayStart, onPlayEnd } = options;
+export function useKarenAudio(events: KarenEvent[], options: UseKarenAudioOptions = {}) {
+  const { enabled = true, onPlayStart, onPlayEnd } = options;
   const queueRef = useRef<string[]>([]);
   const playingRef = useRef(false);
   const lastProcessedRef = useRef(0);
-  const onPlayStartRef = useRef(onPlayStart);
-  const onPlayEndRef = useRef(onPlayEnd);
-  const playNextRef = useRef<() => void>(undefined);
 
-  // Keep callback refs current
-  useEffect(() => {
-    onPlayStartRef.current = onPlayStart;
-    onPlayEndRef.current = onPlayEnd;
-  }, [onPlayStart, onPlayEnd]);
+  const playNext = useCallback(
+    function playNextInner() {
+      if (!enabled || playingRef.current || queueRef.current.length === 0) return;
 
-  const playNext = useCallback(() => {
-    if (playingRef.current || queueRef.current.length === 0) return;
+      const url = queueRef.current.shift();
+      if (!url) return;
 
-    const url = queueRef.current.shift()!;
-    playingRef.current = true;
-    onPlayStartRef.current?.();
+      playingRef.current = true;
+      onPlayStart?.();
 
-    const audio = new Audio(`${API_URL}${url}`);
-    audio.volume = 0.9;
+      const audio = new Audio(`${API_URL}${url}`);
+      audio.volume = 0.9;
 
-    audio.onended = () => {
-      playingRef.current = false;
-      onPlayEndRef.current?.();
-      playNextRef.current?.();
-    };
+      const finish = () => {
+        playingRef.current = false;
+        onPlayEnd?.();
+        playNextInner();
+      };
 
-    audio.onerror = () => {
-      playingRef.current = false;
-      onPlayEndRef.current?.();
-      playNextRef.current?.();
-    };
-
-    audio.play().catch(() => {
-      playingRef.current = false;
-      onPlayEndRef.current?.();
-      playNextRef.current?.();
-    });
-  }, []);
+      audio.onended = finish;
+      audio.onerror = finish;
+      audio.play().catch(finish);
+    },
+    [onPlayEnd, onPlayStart, enabled]
+  );
 
   useEffect(() => {
-    playNextRef.current = playNext;
-  }, [playNext]);
-
-  // Process new audio events
-  useEffect(() => {
-    if (events.length <= lastProcessedRef.current) return;
+    if (!enabled || events.length <= lastProcessedRef.current) return;
 
     const newEvents = events.slice(lastProcessedRef.current);
     lastProcessedRef.current = events.length;
@@ -80,11 +54,9 @@ export function useKarenAudio(
       }
     }
 
-    // Try to start playback
     playNext();
-  }, [events, playNext]);
+  }, [events, playNext, enabled]);
 
-  // Cleanup on unmount
   useEffect(() => {
     return () => {
       queueRef.current = [];

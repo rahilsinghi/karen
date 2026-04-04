@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { KarenEvent } from "@/lib/types";
 
@@ -15,16 +15,16 @@ interface ResearchStep {
 }
 
 export default function ResearchAnimation({ events }: ResearchAnimationProps) {
-  const [visibleSteps, setVisibleSteps] = useState<ResearchStep[]>([]);
-  const [discoveryData, setDiscoveryData] = useState<{
-    target: string;
-    employer: string;
-    work_email: string;
-    coworker_name: string;
-    coworker_email: string;
-  } | null>(null);
-
-  useEffect(() => {
+  const { visibleSteps, discoveryData } = useMemo<{
+    visibleSteps: ResearchStep[];
+    discoveryData: {
+      target: string;
+      employer: string;
+      work_email: string;
+      coworker_name: string;
+      coworker_email: string;
+    } | null;
+  }>(() => {
     const steps: ResearchStep[] = [];
     let discovery = null;
 
@@ -46,9 +46,7 @@ export default function ResearchAnimation({ events }: ResearchAnimationProps) {
         };
       }
     }
-
-    setVisibleSteps(steps);
-    setDiscoveryData(discovery);
+    return { visibleSteps: steps, discoveryData: discovery };
   }, [events]);
 
   if (visibleSteps.length === 0) return null;
@@ -69,13 +67,12 @@ export default function ResearchAnimation({ events }: ResearchAnimationProps) {
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.3 }}
-              className={`mb-1 flex items-start gap-2 ${
-                isWorkEmail
-                  ? "text-[#ef4444] font-bold"
-                  : isDomainStep
+              className={`mb-1 flex items-start gap-2 ${isWorkEmail
+                ? "text-[#ef4444] font-bold"
+                : isDomainStep
                   ? "text-[#eab308]"
                   : "text-[#22c55e]"
-              }`}
+                }`}
             >
               <span className="text-[#6b6b8a] select-none">{">"}</span>
               <TypewriterText
