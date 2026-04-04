@@ -85,35 +85,63 @@ Steps in detail:
 
 ---
 
-## Skipped / Won't Do
+## v2 Ladder Implementation
 
-- **Twitter/X** — 402 CreditsDepleted, needs $100/mo Basic plan. Karen skips L9 gracefully.
-- **LinkedIn** — Would need Playwright browser automation, too fragile for demo.
-- **FedEx shipping** — PDF generation works. Actual shipping is overkill for hackathon.
-- **Response detection (Gmail polling)** — No automated polling implemented. Use dashboard buttons for demo.
+### New integrations to build
+1. **OSINT Research service** (Level 4) — pre-cached research data + SSE animation
+2. **Slack bot** (Level 6) — create workspace, bot, #karen-escalations channel
+3. **Google Calendar** (Level 9) — real event creation via Karen's Gmail
+4. **FedEx Rate API** (Level 10) — sandbox rate quotes + pre-generated legal letter
+5. **Email CC** (Level 5) — distinct from plain email, CC's "discovered" coworker
+6. **ResearchAnimation component** — terminal-style typewriter display in timeline
+7. **Updated de-escalation** — add Slack delete, Calendar delete, remove LinkedIn/Twitter
+
+### Removed from v1
+- **Twitter/X** — 402 CreditsDepleted. Dropped entirely in v2.
+- **LinkedIn** — Stub removed. No replacement needed.
+- **Repeated email/SMS** — Each level now fires a unique channel.
+
+### Won't Do
+- **Response detection (Gmail polling)** — Use dashboard buttons for demo.
+- **Actual FedEx shipping** — Rate quote + PDF is enough for demo.
 
 ---
 
 ## Pre-Demo Checklist
 
+### Credentials
 - [ ] RESEND_API_KEY set and email tested
-- [ ] Bharath's real contact info in circle.json
+- [ ] ELEVENLABS_API_KEY and ELEVENLABS_VOICE_ID set
+- [ ] SLACK_BOT_TOKEN and SLACK_CHANNEL_ID set
+- [ ] GOOGLE_CALENDAR_CREDENTIALS set (Karen's Gmail)
+- [ ] FEDEX_API_KEY, FEDEX_API_SECRET, FEDEX_ACCOUNT_NUMBER set (sandbox)
+- [ ] Twilio credentials verified (SID, token, phone number)
+
+### Data
+- [ ] All circle member contact info filled in circle.json
 - [ ] Bharath's phone verified in Twilio Console
 - [ ] WhatsApp sandbox: Bharath joined
-- [ ] Discord: Audience invite QR code ready
+- [ ] Research cache populated: `backend/data/research_cache.json`
+- [ ] Legal letter template finalized: `backend/data/legal_letter_template.md`
+- [ ] Quips generated: `docker compose exec backend python scripts/generate_quips.py`
+- [ ] hold-music.mp3 present in `backend/audio/music/`
+
+### Infrastructure
 - [ ] Frontend running (localhost:3000 or molly.rahilsinghi.com)
 - [ ] Backend running with prod compose (no `--reload`)
 - [ ] ngrok tunnel active (if using tunnel)
 - [ ] `CORS_ORIGINS` includes frontend URL
+
+### Demo Setup
+- [ ] Discord: Audience invite QR code ready
+- [ ] Slack: Audience invite link ready (optional)
 - [ ] Second display ready for Bharath's phone mirror
 - [ ] FedEx PDF printed and ready to hold up
+- [ ] Laptop speakers / external audio working
+- [ ] Audio test: trigger demo_10s, click "Enable Karen's Voice", confirm quips + music
+- [ ] Full 10-level test run with all channels verified
 - [ ] Demo script rehearsed (3 minutes)
 - [ ] Backup plan: if a channel fails mid-demo, Karen continues to next level
-- [ ] ELEVENLABS_API_KEY and ELEVENLABS_VOICE_ID set in .env
-- [ ] Quips generated: `docker compose exec backend python scripts/generate_quips.py`
-- [ ] hold-music.mp3 present in `backend/audio/music/`
-- [ ] Audio test: trigger demo_10s escalation, click "Enable Karen's Voice", confirm quips + music play
-- [ ] Laptop speakers / external audio working (audience needs to hear Karen)
 
 ---
 
