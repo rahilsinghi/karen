@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { API_URL } from "@/lib/constants";
+import { API_URL, API_HEADERS } from "@/lib/constants";
 import type { ChannelStatus, Escalation, Member, TriggerRequest } from "@/lib/types";
 
 export function useCircle() {
@@ -10,7 +10,7 @@ export function useCircle() {
 
   const fetchMembers = useCallback(async () => {
     try {
-      const res = await fetch(`${API_URL}/api/members`);
+      const res = await fetch(`${API_URL}/api/members`, { headers: API_HEADERS });
       if (res.ok) {
         const data = await res.json();
         setMembers(data.members);
@@ -22,7 +22,7 @@ export function useCircle() {
 
   const fetchEscalations = useCallback(async () => {
     try {
-      const res = await fetch(`${API_URL}/api/escalations`);
+      const res = await fetch(`${API_URL}/api/escalations`, { headers: API_HEADERS });
       if (res.ok) setEscalations(await res.json());
     } catch {
       // silent
@@ -32,7 +32,7 @@ export function useCircle() {
   const fetchChannels = useCallback(
     async (memberId: string): Promise<ChannelStatus[]> => {
       try {
-        const res = await fetch(`${API_URL}/api/members/${memberId}/channels`);
+        const res = await fetch(`${API_URL}/api/members/${memberId}/channels`, { headers: API_HEADERS });
         if (res.ok) return res.json();
       } catch {
         // silent
@@ -45,7 +45,7 @@ export function useCircle() {
   const triggerEscalation = useCallback(async (request: Partial<TriggerRequest>) => {
     const res = await fetch(`${API_URL}/api/trigger`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", ...API_HEADERS },
       body: JSON.stringify(request),
     });
     if (!res.ok) {

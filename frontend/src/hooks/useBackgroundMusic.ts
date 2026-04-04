@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef } from "react";
-import { API_URL } from "@/lib/constants";
+import { API_URL, API_HEADERS } from "@/lib/constants";
 
 /**
  * Background music with progressive Web Audio distortion effects.
@@ -43,7 +43,7 @@ export function useBackgroundMusic() {
       const ctx = new AudioContext();
       ctxRef.current = ctx;
 
-      const response = await fetch(`${API_URL}/api/audio/music/hold-music.mp3`);
+      const response = await fetch(`${API_URL}/api/audio/music/hold-music.mp3`, { headers: API_HEADERS });
       if (!response.ok) return;
 
       const arrayBuffer = await response.arrayBuffer();

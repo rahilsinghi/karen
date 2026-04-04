@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef } from "react";
-import { API_URL } from "@/lib/constants";
+import { API_URL, API_HEADERS } from "@/lib/constants";
 import type { KarenEvent } from "@/lib/types";
 
 interface UseKarenAudioOptions {
@@ -26,18 +26,22 @@ export function useKarenAudio(events: KarenEvent[], options: UseKarenAudioOption
       playingRef.current = true;
       onPlayStart?.();
 
-      const audio = new Audio(`${API_URL}${url}`);
-      audio.volume = 0.9;
-
       const finish = () => {
         playingRef.current = false;
         onPlayEnd?.();
         playNextInner();
       };
 
-      audio.onended = finish;
-      audio.onerror = finish;
-      audio.play().catch(finish);
+      fetch(`${API_URL}${url}`, { headers: API_HEADERS })
+        .then((r) => r.blob())
+        .then((blob) => {
+          const audio = new Audio(URL.createObjectURL(blob));
+          audio.volume = 0.9;
+          audio.onended = finish;
+          audio.onerror = finish;
+          audio.play().catch(finish);
+        })
+        .catch(finish);
     },
     [onPlayEnd, onPlayStart, enabled]
   );

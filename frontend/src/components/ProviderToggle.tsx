@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { API_URL } from "@/lib/constants";
+import { API_URL, API_HEADERS } from "@/lib/constants";
 
 type Provider = "anthropic" | "local";
 
@@ -11,7 +11,7 @@ export function ProviderToggle() {
   const [switching, setSwitching] = useState(false);
 
   useEffect(() => {
-    fetch(`${API_URL}/api/config`)
+    fetch(`${API_URL}/api/config`, { headers: API_HEADERS })
       .then((r) => r.json())
       .then((d) => {
         setProvider(d.ai_provider);
@@ -27,7 +27,7 @@ export function ProviderToggle() {
     try {
       const res = await fetch(`${API_URL}/api/config/provider`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...API_HEADERS },
         body: JSON.stringify({ provider: next }),
       });
       const data = await res.json();

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { API_URL, CHANNEL_ICONS } from "@/lib/constants";
+import { API_URL, API_HEADERS, CHANNEL_ICONS } from "@/lib/constants";
 
 interface FormData {
   name: string;
@@ -53,7 +53,7 @@ export function OnboardingFlow() {
   const handleJoin = async () => {
     const res = await fetch(`${API_URL}/api/members`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", ...API_HEADERS },
       body: JSON.stringify({
         name: form.name,
         contacts: { email: form.email, phone: form.phone },
@@ -69,7 +69,7 @@ export function OnboardingFlow() {
   const handleAddTarget = async () => {
     await fetch(`${API_URL}/api/members`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", ...API_HEADERS },
       body: JSON.stringify({
         name: form.target_name,
         contacts: {

@@ -1,6 +1,11 @@
 export const API_URL =
   process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
+/** Headers required for ngrok free tier (skips browser interstitial) */
+export const API_HEADERS: Record<string, string> = {
+  "ngrok-skip-browser-warning": "true",
+};
+
 export const LEVEL_COLORS: Record<number, string> = {
   1: "#22c55e",
   2: "#22c55e",

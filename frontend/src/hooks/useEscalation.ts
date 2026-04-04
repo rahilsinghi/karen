@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { API_URL } from "@/lib/constants";
+import { API_URL, API_HEADERS } from "@/lib/constants";
 import type { Escalation, KarenEvent } from "@/lib/types";
 
 const EVENT_TYPES = [
@@ -41,7 +41,7 @@ export function useEscalation(escalationId: string | null) {
   const fetchEscalation = useCallback(async () => {
     if (!escalationId) return;
     try {
-      const res = await fetch(`${API_URL}/api/escalation/${escalationId}`);
+      const res = await fetch(`${API_URL}/api/escalation/${escalationId}`, { headers: API_HEADERS });
       if (res.ok) setEscalation(await res.json());
     } catch {
       // silent
@@ -57,10 +57,11 @@ export function useEscalation(escalationId: string | null) {
     function connect() {
       // Pass last_seq so server only replays events we haven't seen
       const lastSeq = lastSeqRef.current;
-      const url =
-        lastSeq >= 0
-          ? `${API_URL}/api/escalation/${escalationId}/stream?last_seq=${lastSeq}`
-          : `${API_URL}/api/escalation/${escalationId}/stream`;
+      const params = new URLSearchParams();
+      if (lastSeq >= 0) params.set("last_seq", String(lastSeq));
+      // ngrok free tier requires this to skip the browser interstitial
+      params.set("ngrok-skip-browser-warning", "true");
+      const url = `${API_URL}/api/escalation/${escalationId}/stream?${params}`;
 
       const source = new EventSource(url);
       sourceRef.current = source;
@@ -122,6 +123,7 @@ export function useEscalation(escalationId: string | null) {
     if (!escalationId) return;
     await fetch(`${API_URL}/api/escalation/${escalationId}/continue`, {
       method: "POST",
+      headers: API_HEADERS,
     });
     fetchEscalation();
   }, [escalationId, fetchEscalation]);
@@ -130,6 +132,7 @@ export function useEscalation(escalationId: string | null) {
     if (!escalationId) return;
     await fetch(`${API_URL}/api/escalation/${escalationId}/resolve`, {
       method: "POST",
+      headers: API_HEADERS,
     });
     fetchEscalation();
   }, [escalationId, fetchEscalation]);
@@ -139,7 +142,7 @@ export function useEscalation(escalationId: string | null) {
       if (!escalationId) return;
       await fetch(`${API_URL}/api/payment-confirm`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...API_HEADERS },
         body: JSON.stringify({
           escalation_id: escalationId,
           amount,
