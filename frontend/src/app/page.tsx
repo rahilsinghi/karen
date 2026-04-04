@@ -15,6 +15,7 @@ export default function HomePage() {
   const router = useRouter();
   const { members, escalations, loading, triggerEscalation } = useCircle();
   const [busy, setBusy] = useState(false);
+  const [confirmMode, setConfirmMode] = useState<"standard" | "nuclear" | "manager" | null>(null);
 
   const liveEscalation = escalations.find((item) => item.status === "active") ?? null;
 
@@ -27,8 +28,16 @@ export default function HomePage() {
     [escalations, liveEscalation, loading]
   );
 
-  async function quickTrigger(mode: "standard" | "nuclear" | "manager") {
-    const target = members.find((member) => member.id !== "rahil") ?? members[0];
+  function requestTrigger(mode: "standard" | "nuclear" | "manager") {
+    setConfirmMode(mode);
+  }
+
+  async function executeTrigger() {
+    if (!confirmMode) return;
+    const mode = confirmMode;
+    setConfirmMode(null);
+
+    const target = members.find((member) => member.id === "rahil") ?? members[0];
     if (!target) {
       router.push("/trigger");
       return;
@@ -64,7 +73,7 @@ export default function HomePage() {
         variant="primary"
         className="violent-unleash min-h-[13rem]"
         disabled={busy}
-        onClick={() => quickTrigger("standard")}
+        onClick={() => requestTrigger("standard")}
       >
         <div className="mt-2 pixel-text text-[0.65rem] text-[#ffe1db]">
           INITIATE ESCALATION
@@ -76,7 +85,7 @@ export default function HomePage() {
         variant="arcane"
         className="min-h-[8.5rem]"
         disabled={busy}
-        onClick={() => quickTrigger("standard")}
+        onClick={() => requestTrigger("standard")}
       />
       <RitualButton
         label={ritualButtons.majors[1].label}
@@ -84,7 +93,7 @@ export default function HomePage() {
         variant="danger"
         className="min-h-[8.5rem]"
         disabled={busy}
-        onClick={() => quickTrigger("nuclear")}
+        onClick={() => requestTrigger("nuclear")}
       />
       <div className="xl:col-start-2 xl:col-end-4 grid gap-3 md:grid-cols-3 xl:grid-cols-3">
         {ritualButtons.minors.map((label, index) => (
@@ -126,11 +135,41 @@ export default function HomePage() {
                     : "No live target bound. Fortress awaits fresh disrespect."}
                 </div>
               </div>
-              <RitualButton label={ritualButtons.majors[2].label} subtitle="CALL THE WITNESS" variant="stone" onClick={() => quickTrigger("manager")} />
+              <RitualButton label={ritualButtons.majors[2].label} subtitle="CALL THE WITNESS" variant="stone" onClick={() => requestTrigger("manager")} />
             </div>
           </StonePanel>
         </div>
       </div>
+      {/* Confirmation Modal */}
+      {confirmMode && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/80">
+          <div className="fortress-panel stone-brick-wall p-8 max-w-md w-full mx-4 border-4 border-red-900 shadow-[0_0_40px_rgba(255,0,0,0.3)]">
+            <div className="pixel-text text-[1.2rem] text-fortress-pink text-center mb-4">
+              UNLEASH KAREN?
+            </div>
+            <div className="font-mono text-sm text-muted text-center mb-2">
+              Mode: {confirmMode.toUpperCase()} // Target: RAHIL
+            </div>
+            <div className="font-mono text-xs text-stone-600 text-center mb-6">
+              This will trigger a real escalation. Karen will send real messages.
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <button
+                onClick={() => setConfirmMode(null)}
+                className="fortress-panel px-4 py-3 font-display text-sm uppercase text-stone-400 hover:text-white transition-colors text-center"
+              >
+                ABORT
+              </button>
+              <button
+                onClick={executeTrigger}
+                className="border-4 border-red-700 bg-red-950/60 px-4 py-3 font-display text-sm uppercase text-red-400 hover:bg-red-900/60 hover:text-white transition-colors text-center shadow-[0_0_15px_rgba(255,0,0,0.2)]"
+              >
+                UNLEASH
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </FortressLayout>
   );
 }
