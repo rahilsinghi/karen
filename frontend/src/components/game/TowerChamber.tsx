@@ -19,10 +19,10 @@ export const TowerChamber: React.FC<TowerChamberProps> = ({ chamber }) => {
                 filter: isSkipped ? "grayscale(1) opacity(0.5)" : "none",
             }}
             className={`relative w-full border-4 border-black p-4 transition-all duration-500 ${isActive
-                    ? "bg-[#7e22ce] shadow-[0_0_20px_#9333ea]"
-                    : isConquered
-                        ? "bg-[#1e1b4b] border-[#4338ca]"
-                        : "bg-[#292524]"
+                ? "bg-[#7e22ce] shadow-[0_0_20px_#9333ea]"
+                : isConquered
+                    ? "bg-[#1e1b4b] border-[#4338ca]"
+                    : "bg-[#292524]"
                 }`}
             style={{
                 imageRendering: "pixelated",
@@ -44,19 +44,36 @@ export const TowerChamber: React.FC<TowerChamberProps> = ({ chamber }) => {
 
                 <div className="flex items-center gap-3">
                     {isActive && (
+                        <div className="flex gap-1">
+                            {[1, 2, 3].map(i => (
+                                <motion.div
+                                    key={i}
+                                    animate={{
+                                        opacity: [0.2, 1, 0.2],
+                                        scale: [0.8, 1.2, 0.8]
+                                    }}
+                                    transition={{ repeat: Infinity, duration: 0.8, delay: i * 0.2 }}
+                                    className="w-2 h-2 bg-red-500 rounded-full shadow-[0_0_10px_#ef4444]"
+                                />
+                            ))}
+                        </div>
+                    )}
+                    {isActive && (
                         <motion.div
                             animate={{ opacity: [0, 1, 0] }}
                             transition={{ repeat: Infinity, duration: 1 }}
-                            className="w-4 h-4 bg-red-600 border-2 border-black shadow-[0_0_10px_#dc2626]"
-                        />
+                            className="px-2 py-1 bg-red-600 border-2 border-black text-[0.5rem] text-white mc-font-pixel"
+                        >
+                            ACTIVE
+                        </motion.div>
                     )}
                     {isConquered && (
-                        <div className="w-6 h-6 flex items-center justify-center bg-green-600 border-2 border-black text-xs text-white mc-font-pixel">
+                        <div className="w-8 h-8 flex items-center justify-center bg-green-600 border-2 border-black text-sm text-white mc-font-pixel shadow-[0_0_10px_rgba(22,163,74,0.5)]">
                             ✓
                         </div>
                     )}
                     {isSkipped && (
-                        <div className="w-6 h-6 flex items-center justify-center bg-gray-600 border-2 border-black text-xs text-white mc-font-pixel">
+                        <div className="w-8 h-8 flex items-center justify-center bg-gray-600 border-2 border-black text-sm text-white mc-font-pixel">
                             ×
                         </div>
                     )}
