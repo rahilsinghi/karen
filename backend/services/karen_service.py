@@ -17,6 +17,7 @@ from models.schemas import (
 from services.audio_service import generate_commentary_audio, get_random_quip
 from services.channel_service import get_available_channels, send_channel
 from services.personality_service import generate_message
+from services.research_service import get_research, get_research_steps
 
 # ── In-memory state ─────────────────────────────────────────────────────────
 
@@ -25,17 +26,16 @@ _event_queues: dict[str, list[asyncio.Queue]] = {}  # escalation_id -> list of s
 _tasks: dict[str, asyncio.Task] = {}  # escalation_id -> background task
 _seq_counters: dict[str, int] = {}  # escalation_id -> next seq number
 
-# Which channels fire at each level
 LEVEL_CHANNELS: dict[int, list[str]] = {
     1: ["email"],
-    2: ["email", "sms"],
-    3: ["email", "whatsapp", "voice_call"],
-    4: ["email", "sms"],  # email CC's a mutual, SMS to CC'd person
-    5: ["linkedin"],
-    6: ["calendar"],
+    2: ["sms"],
+    3: ["whatsapp", "voice_call"],
+    4: ["research", "sms"],       # Research animation, then "I know where you work" SMS
+    5: ["email_cc"],
+    6: ["slack"],
     7: ["discord"],
-    8: ["github"],
-    9: ["twitter"],
+    8: ["calendar"],
+    9: ["github"],
     10: ["fedex"],
 }
 
@@ -208,13 +208,15 @@ async def _run_ladder(escalation_id: str) -> None:
     interval = SPEED_SECONDS[esc.speed]
     available = get_available_channels(esc.target)
 
-    # Pick a CC contact for Level 4 (first circle member who isn't initiator or target)
-    from routers.members import get_all_members
-    cc_member: Member | None = None
-    for m in get_all_members():
-        if m.id != esc.initiator.id and m.id != esc.target.id:
-            cc_member = m
-            break
+    # Look up research data for the target (used at L4 and L5)
+    research = get_research(esc.target.id)
+
+    # The CC contact comes from the research cache (the "discovered coworker")
+    cc_name: str | None = None
+    cc_email: str | None = None
+    if research:
+        cc_name = research.coworker_name
+        cc_email = research.coworker_email
 
     _emit(escalation_id, {
         "type": "escalation_started",
@@ -266,10 +268,21 @@ async def _run_ladder(escalation_id: str) -> None:
 
         esc.current_level = level
         channels_for_level = LEVEL_CHANNELS.get(level, ["email"])
-        days_outstanding = (datetime.utcnow() - esc.started_at).days or 14  # demo default
+        days_outstanding = (datetime.utcnow() - esc.started_at).days or 14
 
+        # ── Level 4: Research animation + hardcoded SMS ──────────────
+        if level == 4:
+            await _run_research_level(escalation_id, esc, days_outstanding)
+            # After research, wait for interval then continue
+            if level < esc.max_level:
+                await _interlude(escalation_id, esc, interval, level)
+            continue
+
+        # ── Level 3: fire-and-forget voice ───────────────────────────
+        # WhatsApp first, then voice call initiated without waiting
+        generated = None
         for channel in channels_for_level:
-            if channel not in available and channel not in ("discord", "github"):
+            if channel not in available and channel not in ("discord", "github", "slack", "research"):
                 _emit(escalation_id, {
                     "type": "level_skipped",
                     "level": level,
@@ -277,8 +290,13 @@ async def _run_ladder(escalation_id: str) -> None:
                 })
                 continue
 
-            # Generate the message
-            cc_name = cc_member.name if (level == 4 and cc_member) else None
+            # Level 5 uses research-discovered CC contact
+            msg_cc_name = cc_name if (level == 5 and cc_name) else None
+
+            # Skip message generation for "research" channel (handled in _run_research_level)
+            if channel == "research":
+                continue
+
             try:
                 generated = await generate_message(
                     personality=esc.personality,
@@ -289,7 +307,7 @@ async def _run_ladder(escalation_id: str) -> None:
                     grievance_type=esc.grievance_type.value,
                     grievance_detail=esc.grievance_detail,
                     days_outstanding=days_outstanding,
-                    cc_name=cc_name,
+                    cc_name=msg_cc_name,
                 )
             except Exception as e:
                 _emit(escalation_id, {
@@ -306,7 +324,7 @@ async def _run_ladder(escalation_id: str) -> None:
                 "message_preview": preview[:100],
             })
 
-            # Inject escalation context for channels that need it (e.g. FedEx PDF)
+            # Inject escalation context for channels that need metadata
             if channel == "fedex":
                 generated.fields["_escalation_id"] = escalation_id
                 generated.fields["_initiator_name"] = esc.initiator.name
@@ -318,21 +336,20 @@ async def _run_ladder(escalation_id: str) -> None:
                 generated.fields["_channels_used"] = str(len(esc.channels_used))
                 generated.fields["_days_elapsed"] = str(days_outstanding)
 
-            # Send it
-            cc_email = cc_member.contacts.email if (level == 4 and cc_member) else None
-            result = await send_channel(channel, esc.target, generated.fields, cc_email)
+            # Level 5 CC email comes from research cache
+            send_cc_email = cc_email if (level == 5 and cc_email) else None
+            result = await send_channel(channel, esc.target, generated.fields, send_cc_email)
 
             esc.messages_sent += 1
             if channel not in esc.channels_used:
                 esc.channels_used.append(channel)
 
-            # Store channel metadata for de-escalation
             if result.success and result.metadata:
                 esc.channel_metadata.update(result.metadata)
-            if level == 4 and cc_email:
-                esc.channel_metadata["cc_contact_email"] = cc_email
-                if cc_member:
-                    esc.channel_metadata["cc_contact_name"] = cc_member.name
+            if level == 5 and send_cc_email:
+                esc.channel_metadata["cc_contact_email"] = send_cc_email
+                if cc_name:
+                    esc.channel_metadata["cc_contact_name"] = cc_name
 
             _emit(escalation_id, {
                 "type": "level_complete",
@@ -341,14 +358,13 @@ async def _run_ladder(escalation_id: str) -> None:
                 "karen_note": generated.karen_note,
             })
 
-            # Karen's sidebar commentary
             _emit(escalation_id, {
                 "type": "commentary",
                 "text": generated.karen_commentary,
                 "timestamp": datetime.utcnow().isoformat(),
             })
 
-            # Emit quip audio (pre-recorded, instant)
+            # Emit quip audio
             quip_url = get_random_quip(esc.personality)
             if quip_url:
                 _emit(escalation_id, {
@@ -364,45 +380,15 @@ async def _run_ladder(escalation_id: str) -> None:
                     "message": f"Channel {channel} failed: {result.detail}",
                 })
 
+        # FedEx rate event at Level 10
+        if level == 10:
+            await _emit_fedex_rate(escalation_id, esc)
+
         # Wait for the interval before next level
         if level < esc.max_level:
-            # Fire off commentary TTS generation in background
-            commentary_task: asyncio.Task | None = None
-            last_commentary = generated.karen_commentary if generated else None
-            if last_commentary:
-                async def _gen_commentary(text: str, lvl: int) -> None:
-                    try:
-                        url = await generate_commentary_audio(
-                            text, esc.personality, escalation_id, lvl,
-                        )
-                        _emit(escalation_id, {
-                            "type": "audio",
-                            "audio_type": "commentary",
-                            "audio_url": url,
-                            "text": text,
-                        })
-                    except Exception as e:
-                        _emit(escalation_id, {
-                            "type": "error",
-                            "message": f"Commentary audio failed for L{lvl}: {e}",
-                        })
+            await _interlude(escalation_id, esc, interval, level)
 
-                commentary_task = asyncio.create_task(_gen_commentary(last_commentary, level))
-
-            # Sleep in small chunks so we can respond to status changes
-            elapsed_time = 0.0
-            while elapsed_time < interval:
-                if esc.status in (
-                    EscalationStatus.DEESCALATING,
-                    EscalationStatus.RESOLVED,
-                ):
-                    if commentary_task and not commentary_task.done():
-                        commentary_task.cancel()
-                    return
-                await asyncio.sleep(min(0.5, interval - elapsed_time))
-                elapsed_time += 0.5
-
-    # Ladder complete — all levels exhausted
+    # Ladder complete
     if esc.status == EscalationStatus.ACTIVE:
         _emit(escalation_id, {
             "type": "commentary",
@@ -412,3 +398,167 @@ async def _run_ladder(escalation_id: str) -> None:
             ),
             "timestamp": datetime.utcnow().isoformat(),
         })
+
+
+async def _run_research_level(
+    escalation_id: str,
+    esc: Escalation,
+    days_outstanding: int,
+) -> None:
+    """Level 4: Research animation + 'I know where you work' SMS."""
+    level = 4
+
+    # Phase 1: Research animation via SSE
+    steps = get_research_steps(esc.target.id)
+    research = get_research(esc.target.id)
+
+    _emit(escalation_id, {
+        "type": "level_start",
+        "level": level,
+        "channel": "research",
+        "message_preview": "Conducting research...",
+    })
+
+    if steps:
+        for i, (step_text, pause_ms) in enumerate(steps):
+            _emit(escalation_id, {
+                "type": "research_step",
+                "step": i + 1,
+                "detail": step_text,
+                "pause_ms": pause_ms,
+            })
+            # Server-side pacing so frontend gets events spaced out
+            await asyncio.sleep(pause_ms / 1000.0)
+
+        # Emit discovery payload
+        if research:
+            _emit(escalation_id, {
+                "type": "research_discovery",
+                "target": research.target_name,
+                "employer": research.employer,
+                "work_email": research.work_email,
+                "coworker_name": research.coworker_name,
+                "coworker_email": research.coworker_email,
+            })
+
+    _emit(escalation_id, {
+        "type": "level_complete",
+        "level": level,
+        "channel": "research",
+        "karen_note": "Research complete. I am thorough.",
+    })
+
+    if "research" not in esc.channels_used:
+        esc.channels_used.append("research")
+
+    # Phase 2: Hardcoded "I know where you work" SMS
+    _emit(escalation_id, {
+        "type": "level_start",
+        "level": level,
+        "channel": "sms",
+        "message_preview": "I know where you work \ud83d\ude42",
+    })
+
+    from services.channel_service import send_channel as _send
+    sms_fields = {"body": "I know where you work \ud83d\ude42"}
+    sms_result = await _send("sms", esc.target, sms_fields)
+
+    esc.messages_sent += 1
+    if "sms" not in esc.channels_used:
+        esc.channels_used.append("sms")
+
+    _emit(escalation_id, {
+        "type": "level_complete",
+        "level": level,
+        "channel": "sms",
+        "karen_note": "Just a friendly reminder that I am thorough.",
+    })
+
+    _emit(escalation_id, {
+        "type": "commentary",
+        "text": "Just a friendly reminder that I am thorough.",
+        "timestamp": datetime.utcnow().isoformat(),
+    })
+
+    quip_url = get_random_quip(esc.personality)
+    if quip_url:
+        _emit(escalation_id, {
+            "type": "audio",
+            "audio_type": "quip",
+            "audio_url": quip_url,
+            "text": "",
+        })
+
+
+async def _emit_fedex_rate(escalation_id: str, esc: Escalation) -> None:
+    """Emit the FedEx rate event after Level 10 completes."""
+    import re
+
+    from services.fedex_service import get_rate_quote
+
+    target_zip = ""
+    addr = esc.target.contacts.address
+    if addr and "FILL" not in addr:
+        match = re.search(r"\d{5}", addr)
+        if match:
+            target_zip = match.group()
+
+    rate, service, destination = await get_rate_quote(target_zip or "10001")
+
+    _emit(escalation_id, {
+        "type": "fedex_rate",
+        "rate": rate,
+        "service": service,
+        "destination": destination,
+    })
+
+
+async def _interlude(
+    escalation_id: str,
+    esc: Escalation,
+    interval: float,
+    level: int,
+) -> None:
+    """Sleep between levels with commentary TTS generation."""
+    commentary_task: asyncio.Task | None = None
+
+    # Generate commentary audio in background during the wait
+    async def _gen_commentary(text: str, lvl: int) -> None:
+        try:
+            url = await generate_commentary_audio(
+                text, esc.personality, escalation_id, lvl,
+            )
+            _emit(escalation_id, {
+                "type": "audio",
+                "audio_type": "commentary",
+                "audio_url": url,
+                "text": text,
+            })
+        except Exception as e:
+            _emit(escalation_id, {
+                "type": "error",
+                "message": f"Commentary audio failed for L{lvl}: {e}",
+            })
+
+    # Find the last commentary event for this level
+    last_commentary = None
+    for evt in reversed(esc.event_history):
+        if evt.get("type") == "commentary":
+            last_commentary = evt.get("text")
+            break
+
+    if last_commentary:
+        commentary_task = asyncio.create_task(_gen_commentary(last_commentary, level))
+
+    # Sleep in small chunks so we can respond to status changes
+    elapsed_time = 0.0
+    while elapsed_time < interval:
+        if esc.status in (
+            EscalationStatus.DEESCALATING,
+            EscalationStatus.RESOLVED,
+        ):
+            if commentary_task and not commentary_task.done():
+                commentary_task.cancel()
+            return
+        await asyncio.sleep(min(0.5, interval - elapsed_time))
+        elapsed_time += 0.5

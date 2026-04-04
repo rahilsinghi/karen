@@ -10,31 +10,111 @@ import { RitualButton } from "@/components/RitualButton";
 import { ThreatBadge } from "@/components/ThreatBadge";
 import { buildCommentaryFeed, levelTone } from "@/lib/fortress-data";
 import { useEscalation } from "@/hooks/useEscalation";
+import { useKarenAudio } from "@/hooks/useKarenAudio";
+import { useBackgroundMusic } from "@/hooks/useBackgroundMusic";
+import { motion, AnimatePresence } from "framer-motion";
+import ResearchAnimation from "@/components/ResearchAnimation";
 
 function EscalationPageInner({ id }: { id: string }) {
   const { escalation, events, connected, continueAnyway, resolve, confirmPayment } = useEscalation(id);
   const [audioEnabled, setAudioEnabled] = useState(false);
+  const { start, stop, setLevel, duck, unduck } = useBackgroundMusic();
+
+  // Audio Hooks
+  useKarenAudio(events, {
+    enabled: audioEnabled,
+    onPlayStart: duck,
+    onPlayEnd: unduck,
+  });
 
   useEffect(() => {
-    if (!audioEnabled) return;
-  }, [audioEnabled]);
+    if (audioEnabled) {
+      void start();
+    } else {
+      stop();
+    }
+  }, [audioEnabled, start, stop]);
+
+  useEffect(() => {
+    if (audioEnabled) {
+      setLevel(escalation?.current_level ?? 1);
+    }
+  }, [audioEnabled, escalation?.current_level, setLevel]);
 
   const currentLevel = escalation?.current_level ?? 1;
   const commentary = useMemo(() => buildCommentaryFeed(events, escalation), [events, escalation]);
   const nextCharge = `${Math.max(1, 11 - currentLevel)} pulses`;
   const responseDetected = events.some((event) => event.type === "response_detected");
   const paymentDetected = events.some((event) => event.type === "payment_detected");
+  const researchEvents = events.filter((e) => e.type === "research_step" || e.type === "research_discovery");
+  const fedexEvents = events.filter((e) => e.type === "fedex_rate");
+  const deescalationEvents = events.filter((e) => e.type === "deescalation_step");
+  const isResolved = escalation?.status === "resolved";
 
   const bottomZone = (
     <div className="grid gap-4 md:grid-cols-3">
-      <RitualButton label="CONTINUE ANYWAY" subtitle="IGNORE THEIR EXCUSES" variant="arcane" onClick={() => void continueAnyway()} disabled={!escalation || escalation.status === "resolved"} />
-      <RitualButton label="RESOLVE MATTER" subtitle="BEGIN DE-ESCALATION RITE" variant="stone" onClick={() => void resolve()} disabled={!escalation} />
-      <RitualButton label="PAYMENT DETECTED" subtitle="CONFIRM OFFERING" variant="primary" onClick={() => void confirmPayment(escalation?.amount ?? 1, escalation?.target.name ?? "target")} disabled={!escalation} />
+      <RitualButton
+        label="CONTINUE ANYWAY"
+        subtitle="IGNORE THEIR EXCUSES"
+        variant="arcane"
+        onClick={() => void continueAnyway()}
+        disabled={!escalation || escalation.status === "resolved"}
+      />
+      <RitualButton
+        label="RESOLVE MATTER"
+        subtitle="BEGIN DE-ESCALATION RITE"
+        variant="stone"
+        onClick={() => void resolve()}
+        disabled={!escalation}
+      />
+      <RitualButton
+        label="PAYMENT DETECTED"
+        subtitle="CONFIRM OFFERING"
+        variant="primary"
+        onClick={() => void confirmPayment(escalation?.amount ?? 1, escalation?.target.name ?? "target")}
+        disabled={!escalation}
+      />
     </div>
   );
 
   return (
     <>
+      <AnimatePresence>
+        {responseDetected && !isResolved && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="border-b-4 border-border bg-[#064e3b] px-6 py-3"
+          >
+            <div className="flex items-center justify-between">
+              <div className="pixel-text text-[0.8rem] text-[#10b981]">
+                💬 COUNTER-MESSAGE DETECTED // KAREN IS HOLDING FIRE.
+              </div>
+              <div className="flex gap-4">
+                <RitualButton label="NEUTRALIZE" variant="stone" className="h-10 px-4" onClick={() => void resolve()} />
+                <RitualButton label="EXECUTE" variant="danger" className="h-10 px-4" onClick={() => void continueAnyway()} />
+              </div>
+            </div>
+          </motion.div>
+        )}
+        {paymentDetected && !isResolved && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="border-b-4 border-border bg-[#78350f] px-6 py-3"
+          >
+            <div className="flex items-center justify-between">
+              <div className="pixel-text text-[0.8rem] text-[#f59e0b]">
+                💰 PAYMENT INTERCEPTED // AWAITING OPERATOR COMMAND.
+              </div>
+              <RitualButton label="DE-ESCALATE" variant="primary" className="h-10 px-4" onClick={() => void resolve()} />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {!audioEnabled && (
         <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/80 backdrop-blur-sm p-6">
           <div className="fortress-panel max-w-xl p-6 text-center">
@@ -42,7 +122,13 @@ function EscalationPageInner({ id }: { id: string }) {
             <p className="mt-4 font-mono text-[1.1rem] uppercase text-text">
               Permit the fortress to speak aloud during the climb.
             </p>
-            <RitualButton label="UNSEAL THE VOICE GATE" subtitle="CONFIRM AUDIO" variant="primary" className="mt-6 w-full" onClick={() => setAudioEnabled(true)} />
+            <RitualButton
+              label="UNSEAL THE VOICE GATE"
+              subtitle="CONFIRM AUDIO"
+              variant="primary"
+              className="mt-6 w-full"
+              onClick={() => setAudioEnabled(true)}
+            />
           </div>
         </div>
       )}
@@ -64,19 +150,36 @@ function EscalationPageInner({ id }: { id: string }) {
               <div className="space-y-3 font-mono text-[1rem] uppercase">
                 <div>{escalation?.grievance_detail ?? "Loading chamber..."}</div>
                 <div className="flex flex-wrap gap-2">
-                  <ThreatBadge label={levelTone(currentLevel)} tone={currentLevel <= 2 ? "green" : currentLevel <= 4 ? "yellow" : currentLevel <= 6 ? "orange" : currentLevel <= 8 ? "red" : currentLevel === 9 ? "purple" : "pink"} />
-                  <ThreatBadge label={responseDetected ? "RESPONSE DETECTED" : "NO RESPONSE"} tone={responseDetected ? "green" : "red"} />
-                  <ThreatBadge label={paymentDetected ? "PAYMENT DETECTED" : "NO PAYMENT"} tone={paymentDetected ? "green" : "orange"} />
+                  <ThreatBadge
+                    label={levelTone(currentLevel)}
+                    tone={currentLevel <= 2 ? "green" : currentLevel <= 4 ? "yellow" : currentLevel <= 6 ? "orange" : currentLevel <= 8 ? "red" : currentLevel === 9 ? "purple" : "pink"}
+                  />
+                  <ThreatBadge
+                    label={responseDetected ? "RESPONSE DETECTED" : "NO RESPONSE"}
+                    tone={responseDetected ? "green" : "red"}
+                  />
+                  <ThreatBadge
+                    label={paymentDetected ? "PAYMENT DETECTED" : "NO PAYMENT"}
+                    tone={paymentDetected ? "green" : "orange"}
+                  />
                 </div>
               </div>
             </StonePanel>
             <StonePanel title="RITUAL CHARGE METER" eyebrow="COUNTDOWN TO NEXT FLOOR">
               <div className="border-4 border-border bg-[#130f15] p-3">
-                <div className="wire-run animate-wire-pulse h-6" style={{ width: `${Math.min(100, currentLevel * 10)}%` }} />
+                <div
+                  className="wire-run animate-wire-pulse h-6"
+                  style={{ width: `${Math.min(100, currentLevel * 10)}%` }}
+                />
               </div>
               <div className="mt-3 pixel-text text-[0.8rem] text-fortress-pink">{nextCharge}</div>
             </StonePanel>
             <CommentaryLog lines={commentary} />
+            {researchEvents.length > 0 && (
+              <StonePanel title="OSINT MODULE" eyebrow="KAREN RESEARCH">
+                <ResearchAnimation events={events} />
+              </StonePanel>
+            )}
           </div>
 
           <EscalationTower currentLevel={currentLevel} />
@@ -100,6 +203,39 @@ function EscalationPageInner({ id }: { id: string }) {
                 </div>
               </div>
             </StonePanel>
+
+            {deescalationEvents.length > 0 && (
+              <StonePanel title="DE-ESCALATION LOG" eyebrow="RITUAL REVERSAL">
+                <div className="space-y-2">
+                  {deescalationEvents.map((e, idx) => {
+                    if (e.type !== "deescalation_step") return null;
+                    const ok = e.status === "ok";
+                    return (
+                      <div key={idx} className={`border-l-4 pl-3 ${ok ? "border-green-500" : "border-red-500"}`}>
+                        <div className="font-mono text-[0.9rem] uppercase text-text">{e.action}</div>
+                        {e.karen_note && <div className="font-mono text-[0.7rem] text-muted italic">{e.karen_note}</div>}
+                      </div>
+                    );
+                  })}
+                </div>
+              </StonePanel>
+            )}
+
+            {fedexEvents.length > 0 && (
+              <StonePanel title="LOGISTICS QUOTE" eyebrow="NUCLEAR OPTION DATA">
+                {fedexEvents.map((e, idx) => {
+                  if (e.type !== "fedex_rate") return null;
+                  return (
+                    <div key={idx} className="fortress-panel p-3 bg-[#2a1a0a] border-[#f59e0b]">
+                      <div className="pixel-text text-[0.6rem] text-[#f59e0b]">{e.service.toUpperCase()}</div>
+                      <div className="mt-1 font-mono text-[1.4rem] text-[#fbbf24]">${e.rate}</div>
+                      <div className="mt-1 font-mono text-[0.8rem] text-muted">{e.destination}</div>
+                    </div>
+                  );
+                })}
+              </StonePanel>
+            )}
+
             <StonePanel title="CHANNEL ARTIFACTS" eyebrow="ACTIVE LOADOUT">
               <div className="grid gap-2">
                 {(escalation?.channels_used.length ? escalation.channels_used : ["email", "sms", "fedex"]).map((channel) => (

@@ -5,19 +5,20 @@ import { API_URL } from "@/lib/constants";
 import type { KarenEvent } from "@/lib/types";
 
 interface UseKarenAudioOptions {
+  enabled?: boolean;
   onPlayStart?: () => void;
   onPlayEnd?: () => void;
 }
 
 export function useKarenAudio(events: KarenEvent[], options: UseKarenAudioOptions = {}) {
-  const { onPlayStart, onPlayEnd } = options;
+  const { enabled = true, onPlayStart, onPlayEnd } = options;
   const queueRef = useRef<string[]>([]);
   const playingRef = useRef(false);
   const lastProcessedRef = useRef(0);
 
   const playNext = useCallback(
     function playNextInner() {
-      if (playingRef.current || queueRef.current.length === 0) return;
+      if (!enabled || playingRef.current || queueRef.current.length === 0) return;
 
       const url = queueRef.current.shift();
       if (!url) return;
@@ -38,11 +39,11 @@ export function useKarenAudio(events: KarenEvent[], options: UseKarenAudioOption
       audio.onerror = finish;
       audio.play().catch(finish);
     },
-    [onPlayEnd, onPlayStart]
+    [onPlayEnd, onPlayStart, enabled]
   );
 
   useEffect(() => {
-    if (events.length <= lastProcessedRef.current) return;
+    if (!enabled || events.length <= lastProcessedRef.current) return;
 
     const newEvents = events.slice(lastProcessedRef.current);
     lastProcessedRef.current = events.length;
@@ -54,7 +55,7 @@ export function useKarenAudio(events: KarenEvent[], options: UseKarenAudioOption
     }
 
     playNext();
-  }, [events, playNext]);
+  }, [events, playNext, enabled]);
 
   useEffect(() => {
     return () => {

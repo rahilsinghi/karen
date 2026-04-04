@@ -1,0 +1,40 @@
+{
+  "bharath": {
+    "target_name": "Bharath Mahesh Gera",
+    "portfolio_url": "linkedin.com/in/bharath-mahesh-gera",
+    "employer": "NYU Stern School of Business",
+    "role": "MBA Candidate",
+    "domain": "stern.nyu.edu",
+    "work_email": "bharathmaheshgera@stern.nyu.edu",
+    "coworker_name": "Chinmay Shringi",
+    "coworker_email": "cs7810@nyu.edu",
+    "discovery_steps": [
+      "Scanning Bharath Mahesh Gera's public web presence...",
+      "Found LinkedIn profile: linkedin.com/in/bharath-mahesh-gera",
+      "Work history: NYU Stern School of Business — MBA Candidate",
+      "Domain discovered: stern.nyu.edu. Inferring work email...",
+      "Work email: bharathmaheshgera@stern.nyu.edu. Confidence: high.",
+      "Identifying colleagues for visibility escalation...",
+      "Colleague identified: Chinmay Shringi (cs7810@nyu.edu)"
+    ]
+  },
+  "rahil": {
+    "target_name": "Rahil Singhi",
+    "portfolio_url": "rahilsinghi.com",
+    "employer": "Kismet",
+    "role": "AI/Data Engineering Intern",
+    "domain": "makekismet.com",
+    "work_email": "rahil@makekismet.com",
+    "coworker_name": "Sariya Rizwan",
+    "coworker_email": "sariyakh25@gmail.com",
+    "discovery_steps": [
+      "Scanning Rahil Singhi's public web presence...",
+      "Found portfolio at rahilsinghi.com",
+      "Work history: Kismet — AI/Data Engineering Intern",
+      "Domain discovered: makekismet.com. Inferring work email...",
+      "Work email: rahil@makekismet.com. Confidence: high.",
+      "Identifying colleagues for visibility escalation...",
+      "Colleague identified: Sariya Rizwan (sariyakh25@gmail.com)"
+    ]
+  }
+}

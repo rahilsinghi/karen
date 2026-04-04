@@ -204,10 +204,10 @@ value exists — she skips channels with FILL_BEFORE_DEMO.
 |---------|-------|---------|
 | Gmail | karen.follows.up.nyc@gmail.com | All email escalations |
 | Twilio number | TBD (buy during setup) | SMS + WhatsApp Business |
-| LinkedIn | Karen Follows-Up | Professional escalations |
-| Twitter/X | @KarenFollowsUp | Public posts |
 | Discord | Karen bot (token in .env) | Server announcements |
+| Slack | Karen bot in Karen HQ workspace | Level 6 channel posts |
 | ElevenLabs | Creator plan (expires ~2026-04-14) | Karen's TTS voice (Rachel) |
+| FedEx | developer.fedex.com sandbox | Level 10 rate quotes |
 
 Karen always sends AS herself, ON BEHALF OF the initiator:
 "Hi [target], I'm Karen — reaching out on behalf of [initiator]
@@ -291,23 +291,29 @@ reach them there. It's a feature, not a bug.
 
 ---
 
-## The Escalation Ladder
+## The Escalation Ladder (v2)
 
-10 levels. Configurable interval (default 5s for demo, 1hr production).
-Each level: one or more channels fire simultaneously.
+10 levels. Configurable interval (default 5s for demo, 10s for audio demo,
+1hr production). Each level fires a unique channel — no repeats.
+
+See `docs/superpowers/specs/2026-04-04-escalation-ladder-v2-design.md` for
+the full level-by-level spec with integration details.
 
 ```
-Level 1:  Email (warm)
-Level 2:  Email (bump) + SMS
-Level 3:  Email (tone shift) + WhatsApp
-Level 4:  Email (CC mutual contact) + SMS to CC'd person
-Level 5:  LinkedIn connection request + LinkedIn InMail
-Level 6:  Google Calendar event (3 reminders)
+Level 1:  Email (warm first contact)
+Level 2:  SMS (text to phone)
+Level 3:  WhatsApp + Voice Call (Karen calls)
+Level 4:  OSINT Research (pre-cached discovery animation)
+Level 5:  Email CC (CC'ing discovered "coworker" — a circle member)
+Level 6:  Slack (#karen-escalations post)
 Level 7:  Discord @everyone post
 Level 8:  GitHub commit → rahilsinghi.com/open-matters live
-Level 9:  Twitter/X post from @KarenFollowsUp
-Level 10: FedEx formal letter (PDF generated + shipped)
+Level 9:  Google Calendar event (invites target)
+Level 10: FedEx formal letter (pre-generated legal doc + rate quote + PDF)
 ```
+
+Removed from v1: LinkedIn (stub), Twitter (402 CreditsDepleted),
+repeated email/SMS across multiple levels.
 
 ### Response detection
 Karen polls the Gmail thread every [interval/2] seconds.
@@ -334,14 +340,15 @@ Failures shown honestly (FedEx cannot be cancelled — shown as ✗).
 ```
 Order of de-escalation:
 1. Remove from Open Matters (GitHub commit + Vercel deploy)
-2. Delete Discord post
-3. Delete LinkedIn InMail (if still unread)
-4. Cancel FedEx shipment
+2. Delete Slack message
+3. Delete Discord post
+4. Delete Calendar event
+5. Cancel FedEx shipment
    → If already collected: show ✗ with Karen's note
-5. Send apology to target
-6. Send apology to CC'd contacts
-7. Send apology to the apology (Karen's note: "caused confusion")
-8. Karen's closing line + next target prompt
+6. Send apology to target
+7. Send apology to CC'd contacts (from Level 5)
+8. Send apology to the apology (Karen's note: "caused confusion")
+9. Karen's closing line + next target prompt
 ```
 
 Karen's closing line (always):
@@ -590,16 +597,9 @@ TWILIO_ACCOUNT_SID=
 TWILIO_AUTH_TOKEN=
 TWILIO_PHONE_NUMBER=        # Karen's number e.g. +19175551234
 
-# LinkedIn (browser automation credentials)
-LINKEDIN_EMAIL=             # Karen's LinkedIn login
-LINKEDIN_PASSWORD=
-
-# Twitter/X API v2
-TWITTER_API_KEY=
-TWITTER_API_SECRET=
-TWITTER_ACCESS_TOKEN=
-TWITTER_ACCESS_SECRET=
-TWITTER_BEARER_TOKEN=
+# Slack
+SLACK_BOT_TOKEN=            # xoxb-... Bot User OAuth Token
+SLACK_CHANNEL_ID=           # #karen-escalations channel ID
 
 # Discord
 DISCORD_BOT_TOKEN=
@@ -611,10 +611,11 @@ GOOGLE_CALENDAR_CREDENTIALS=  # Service account JSON path
 GITHUB_TOKEN=               # Fine-grained PAT for portfolio repo
 GITHUB_REPO=rahilsinghi/portfolio
 
-# FedEx
+# FedEx (sandbox for demo)
 FEDEX_API_KEY=
 FEDEX_API_SECRET=
 FEDEX_ACCOUNT_NUMBER=
+FEDEX_SENDER_ZIP=10001      # Karen's NYC zip for rate quotes
 
 # Karen's return address (for FedEx sender)
 KAREN_ADDRESS_LINE1=Karen Automated Correspondence Systems LLC

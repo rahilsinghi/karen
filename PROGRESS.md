@@ -1,6 +1,6 @@
 # KAREN — Build Progress
 
-Last updated: 2026-03-31 (Session 3)
+Last updated: 2026-04-04 (Session 4)
 
 ---
 
@@ -15,13 +15,15 @@ Last updated: 2026-03-31 (Session 3)
 | 5a | Email (Resend API) | CODE DONE — needs RESEND_API_KEY |
 | 5b | SMS (Twilio) | WORKING |
 | 5c | WhatsApp (Twilio) | CODE DONE — needs sandbox setup |
-| 5d | LinkedIn | STUB — skip for demo |
-| 5e | Google Calendar API | STUB — needs service account |
-| 5f | Discord bot | WORKING |
-| 5g | GitHub API → Open Matters | WORKING |
-| 5h | Twitter/X API v2 | SKIPPED — 402 CreditsDepleted (needs $100/mo) |
-| 5i | FedEx PDF generation | WORKING (PDF only, no shipping) |
-| 5j | Voice call (Twilio) | WORKING (trial account disclaimer) |
+| 5d | Voice call (Twilio) | WORKING (trial account disclaimer) |
+| 5e | OSINT Research (pre-cached) | NOT STARTED — v2 ladder |
+| 5f | Slack bot | NOT STARTED — v2 ladder |
+| 5g | Discord bot | WORKING |
+| 5h | GitHub API → Open Matters | WORKING |
+| 5i | Google Calendar API (real) | NOT STARTED — v2 ladder |
+| 5j | FedEx (PDF + rate API) | PARTIAL — PDF works, rate API not started |
+| ~~5x~~ | ~~LinkedIn~~ | REMOVED in v2 |
+| ~~5y~~ | ~~Twitter/X~~ | REMOVED in v2 |
 | 6 | Karen orchestration service (escalation ladder) | DONE |
 | 7 | FastAPI endpoints + SSE stream | DONE |
 | 8 | De-escalation service | DONE |
@@ -159,12 +161,46 @@ ELEVENLABS_VOICE_ID=21m00Tcm4TlvDq8ikWAM   # Rachel
 
 ---
 
+## Escalation Ladder v2 (Session 4 — 2026-04-04)
+
+### What Changed
+Full redesign of the 10-level escalation ladder. Every level now fires a unique channel — no repeats.
+
+| Level | v1 | v2 |
+|-------|----|----|
+| 1 | Email | Email (same) |
+| 2 | Email + SMS | SMS only |
+| 3 | Email + WhatsApp + Voice | WhatsApp + Voice (no email) |
+| 4 | Email CC + SMS | OSINT Research (NEW) |
+| 5 | LinkedIn (stub) | Email CC (payoff from research) |
+| 6 | Calendar (stub) | Slack (NEW) |
+| 7 | Discord | Discord (same) |
+| 8 | GitHub | GitHub (same) |
+| 9 | Twitter (broken) | Google Calendar (real) |
+| 10 | FedEx PDF | FedEx (legal letter + rate quote) |
+
+### New Integrations Needed
+- **Slack** — Bot token + channel, replaces LinkedIn stub
+- **OSINT Research** — Pre-cached data + animated SSE display
+- **Google Calendar** — Real integration via Karen's Gmail
+- **FedEx Rate API** — Actual rate quotes for the letter
+
+### Session 4 Fixes
+1. **SSE reconnect flooding** — Frontend reset backoff on every onopen. Fixed: only reset after 5s stable connection.
+2. **SSE history replay too large** — 68+ events replayed on reconnect through tunnel. Fixed: `last_seq` query param skips already-seen events.
+3. **Background music never started** — Music depended on catching `escalation_started` event live. Fixed: starts immediately when audio enabled + escalation active.
+4. **EscalationTimeline missing demo_10s** — `SPEED_SECONDS` map was missing the 10s interval. Fixed.
+5. **dev.sh rewritten** — Single startup script starts Docker + Next.js together with health checks and clean shutdown on Ctrl+C.
+6. **Git repo initialized** — 10 structured commits pushed to github.com/rahilsinghi/karen.
+
+### Spec Doc
+`docs/superpowers/specs/2026-04-04-escalation-ladder-v2-design.md`
+
+---
+
 ## Known Issues
 
 1. **No navigation bar** — Pages only reachable by URL or in-app links. No global nav.
 2. **Response detection not automated** — Gmail polling not implemented. Must use manual API endpoint or dashboard buttons.
-3. **LinkedIn fakes success** — UI shows green but nothing actually sends. Audience won't notice.
-4. **Calendar fakes success** — Same as LinkedIn.
-5. **Open Matters table missing columns** — Spec calls for Days, Attempts, Karen's Note. Currently only has Ref, Name, Amount, Detail, Level, Status.
-6. **Hot reload kills escalations** — Backend `--reload` flag means file saves during demo wipe in-memory state. Use `docker-compose.prod.yml` for demo.
-7. **Git repo not initialized** — No commits yet. Need to `git init` and make initial commit.
+3. **Open Matters table missing columns** — Spec calls for Days, Attempts, Karen's Note. Currently only has Ref, Name, Amount, Detail, Level, Status.
+4. **Hot reload kills escalations** — Backend `--reload` flag means file saves during demo wipe in-memory state. Use `docker-compose.prod.yml` for demo.

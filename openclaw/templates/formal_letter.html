@@ -14,6 +14,9 @@
   .closing { margin-top: 3em; }
   .signature { margin-top: 2em; font-style: italic; }
   .ref { font-size: 9pt; color: #666; margin-top: 3em; border-top: 1px solid #ccc; padding-top: 0.5em; }
+  .qr-section { margin-top: 2em; text-align: center; }
+  .qr-section img { width: 120px; height: 120px; }
+  .qr-section p { font-size: 8pt; color: #666; margin-top: 0.5em; }
 </style>
 </head>
 <body>
@@ -44,6 +47,11 @@
       <p>Karen Automated Correspondence Systems LLC</p>
       <p>Ref: {{ref_number}}</p>
     </div>
+  </div>
+
+  <div class="qr-section">
+    <img src="{{qr_code}}" alt="Open Matters QR Code" />
+    <p>Scan for public record: rahilsinghi.com/open-matters</p>
   </div>
 
   <div class="ref">

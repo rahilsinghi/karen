@@ -22,24 +22,25 @@ async def run_deescalation(
 ) -> None:
     """Sequential de-escalation. Each step shown as it completes.
 
-    Order per spec:
+    Order per spec v2:
     1. Remove from Open Matters (GitHub)
-    2. Delete Discord post
-    3. Delete LinkedIn InMail (intentionally fails)
-    4. Cancel FedEx shipment (fails if already shipped)
-    5. Send apology to target (email)
-    6. Send apology to CC'd contacts (email)
-    7. Send apology to the apology ("caused confusion")
-    8. Karen's closing line (emitted by caller in karen_service)
+    2. Delete Slack message
+    3. Delete Discord post
+    4. Delete Calendar event
+    5. Cancel FedEx shipment (fails if already shipped)
+    6. Send apology to target (email)
+    7. Send apology to CC'd contacts (email, Level 5+)
+    8. Send apology to the apology ("caused confusion")
     """
 
     steps: list[tuple[str, Any, bool]] = [
         ("Remove from Open Matters", _remove_open_matters, "github" in esc.channels_used),
+        ("Delete Slack message", _delete_slack, "slack" in esc.channels_used),
         ("Delete Discord post", _delete_discord, "discord" in esc.channels_used),
-        ("Delete LinkedIn InMail", _delete_linkedin, "linkedin" in esc.channels_used),
+        ("Delete Calendar event", _delete_calendar, "calendar" in esc.channels_used),
         ("Cancel FedEx shipment", _cancel_fedex, "fedex" in esc.channels_used),
         ("Send apology to target", _send_apology_target, True),
-        ("Send apology to CC'd contacts", _send_apology_cc, esc.current_level >= 4),
+        ("Send apology to CC'd contacts", _send_apology_cc, esc.current_level >= 5),
         ("Send apology to the apology", _send_apology_apology, True),
     ]
 
@@ -157,15 +158,37 @@ async def _delete_discord(esc: Escalation) -> tuple[bool, str]:
     return False, f"Discord API returned {resp.status_code}. The post survives."
 
 
-# ── Step 3: LinkedIn (intentionally fails) ──────────────────────────────────
+# ── Delete Slack message ───────────────────────────────────────────────────
 
 
-async def _delete_linkedin(esc: Escalation) -> tuple[bool, str]:
-    """Attempt to delete LinkedIn InMail. Always fails -- by design."""
-    return False, "LinkedIn InMail cannot be recalled once read. Karen regrets nothing."
+async def _delete_slack(esc: Escalation) -> tuple[bool, str]:
+    """Delete Karen's Slack message using the stored timestamp."""
+    from services.slack_service import delete_message
+
+    message_ts = esc.channel_metadata.get("slack_message_ts", "")
+    if not message_ts:
+        return False, "No Slack message timestamp stored. Karen cannot unsay what she said."
+
+    success, detail = await delete_message(message_ts)
+    return success, detail
 
 
-# ── Step 4: FedEx cancellation ──────────────────────────────────────────────
+# ── Delete Calendar event ──────────────────────────────────────────────────
+
+
+async def _delete_calendar(esc: Escalation) -> tuple[bool, str]:
+    """Delete the Google Calendar event using the stored event ID."""
+    from services.calendar_service import delete_event
+
+    event_id = esc.channel_metadata.get("calendar_event_id", "")
+    if not event_id:
+        return False, "No calendar event ID stored. The meeting stands."
+
+    success, detail = await delete_event(event_id)
+    return success, detail
+
+
+# ── FedEx cancellation ────────────────────────────────────────────────────
 
 
 async def _cancel_fedex(esc: Escalation) -> tuple[bool, str]:

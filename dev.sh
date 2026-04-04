@@ -47,6 +47,28 @@ ENVEOF
   echo "Created frontend/.env.local with default values."
 fi
 
+# ── Research cache validation ────────────────────────────────────────
+
+echo "Checking research cache..."
+python3 -c "
+import json, sys
+cache_path = '$ROOT_DIR/backend/data/research_cache.json'
+try:
+    with open(cache_path) as f:
+        cache = json.load(f)
+except FileNotFoundError:
+    print('ERROR: research_cache.json not found at ' + cache_path)
+    print('Create it from the template in the v2 design spec.')
+    sys.exit(1)
+
+target = cache.get('bharath', {})
+unfilled = [k for k, v in target.items() if isinstance(v, str) and 'FILL' in v]
+if unfilled:
+    print(f'ERROR: research_cache.json has unfilled fields for bharath: {unfilled}')
+    sys.exit(1)
+print('✓ Research cache OK')
+" || exit 1
+
 # ── Install frontend deps if needed ───────────────────────────────
 
 if [ ! -d "$ROOT_DIR/frontend/node_modules" ]; then

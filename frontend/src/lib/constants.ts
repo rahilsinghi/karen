@@ -15,15 +15,15 @@ export const LEVEL_COLORS: Record<number, string> = {
 };
 
 export const LEVEL_LABELS: Record<number, string> = {
-  1: "Email (warm)",
-  2: "Email + SMS",
-  3: "Email + WhatsApp + Voice",
-  4: "Email CC + SMS",
-  5: "LinkedIn",
-  6: "Calendar",
-  7: "Discord",
-  8: "Open Matters",
-  9: "Twitter/X",
+  1: "Email",
+  2: "SMS",
+  3: "WhatsApp + Voice",
+  4: "OSINT Research",
+  5: "Email CC",
+  6: "Slack",
+  7: "Discord @everyone",
+  8: "Google Calendar",
+  9: "Open Matters",
   10: "FedEx Letter",
 };
 
@@ -34,15 +34,16 @@ export const ESCALATION_LEVELS = Object.entries(LEVEL_LABELS).map(([level, label
 
 export const CHANNEL_ICONS: Record<string, string> = {
   email: "📧",
+  email_cc: "📧",
   sms: "📱",
   whatsapp: "💬",
-  linkedin: "💼",
-  twitter: "🐦",
+  voice_call: "📞",
+  research: "🔍",
+  slack: "💼",
   calendar: "📅",
   discord: "🎮",
   github: "📋",
   fedex: "📦",
-  voice_call: "📞",
 };
 
 export const PERSONALITY_LABELS: Record<string, string> = {
@@ -68,6 +69,20 @@ export const KAREN_QUOTES = [
   "[Name] was last seen online 3 minutes ago. Karen noticed.",
   "Your silence has been noted. Your silence has been documented.",
 ];
+
+export const SATISFACTION_LABELS: Record<number, { emoji: string; label: string }> = {
+  0: { emoji: "😴", label: "Awaiting Instructions" },
+  1: { emoji: "😐", label: "Mildly Concerned" },
+  2: { emoji: "🙂", label: "Politely Persistent" },
+  3: { emoji: "🤨", label: "Increasingly Motivated" },
+  4: { emoji: "🧐", label: "Conducting Research" },
+  5: { emoji: "😤", label: "Professionally Invested" },
+  6: { emoji: "😠", label: "Channeling Energy" },
+  7: { emoji: "🔥", label: "Community Engaged" },
+  8: { emoji: "📅", label: "Scheduling Accountability" },
+  9: { emoji: "🦞", label: "Fully Committed" },
+  10: { emoji: "☢️", label: "At Peace" },
+};
 
 export function getLevelColor(level: number): string {
   return LEVEL_COLORS[level] ?? "#6b6b8a";

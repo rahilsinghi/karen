@@ -52,11 +52,12 @@ class CircleResponse(BaseModel):
 
 class Channel(str, Enum):
     EMAIL = "email"
+    EMAIL_CC = "email_cc"
     SMS = "sms"
     WHATSAPP = "whatsapp"
     VOICE_CALL = "voice_call"
-    LINKEDIN = "linkedin"
-    TWITTER = "twitter"
+    RESEARCH = "research"
+    SLACK = "slack"
     CALENDAR = "calendar"
     DISCORD = "discord"
     GITHUB = "github"
@@ -205,6 +206,29 @@ class AudioEvent(BaseModel):
     text: str = ""
 
 
+class ResearchStepEvent(BaseModel):
+    type: Literal["research_step"] = "research_step"
+    step: int
+    detail: str
+    pause_ms: int = 400
+
+
+class ResearchDiscoveryEvent(BaseModel):
+    type: Literal["research_discovery"] = "research_discovery"
+    target: str
+    employer: str
+    work_email: str
+    coworker_name: str
+    coworker_email: str
+
+
+class FedexRateEvent(BaseModel):
+    type: Literal["fedex_rate"] = "fedex_rate"
+    rate: str
+    service: str
+    destination: str
+
+
 KarenEvent = (
     LevelStartEvent
     | LevelCompleteEvent
@@ -216,4 +240,7 @@ KarenEvent = (
     | CompleteEvent
     | ErrorEvent
     | AudioEvent
+    | ResearchStepEvent
+    | ResearchDiscoveryEvent
+    | FedexRateEvent
 )

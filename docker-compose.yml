@@ -12,6 +12,14 @@ services:
       - OPENCLAW_BRIDGE_PORT=18790
     restart: unless-stopped
 
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    restart: unless-stopped
+
   backend:
     build: ./backend
     ports:
@@ -24,3 +32,6 @@ services:
     depends_on:
       - openclaw
     restart: unless-stopped
+
+volumes:
+  ollama_data:
