@@ -7,6 +7,7 @@ import type { ChannelStatus, Escalation, Member, TriggerRequest } from "@/lib/ty
 export function useCircle() {
   const [members, setMembers] = useState<Member[]>([]);
   const [escalations, setEscalations] = useState<Escalation[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const fetchMembers = useCallback(async () => {
     try {
@@ -42,6 +43,12 @@ export function useCircle() {
     []
   );
 
+  const fetchAll = useCallback(async () => {
+    setLoading(true);
+    await Promise.all([fetchMembers(), fetchEscalations()]);
+    setLoading(false);
+  }, [fetchMembers, fetchEscalations]);
+
   const triggerEscalation = useCallback(async (request: Partial<TriggerRequest>) => {
     const res = await fetch(`${API_URL}/api/trigger`, {
       method: "POST",
@@ -58,16 +65,12 @@ export function useCircle() {
   }, [fetchEscalations]);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    void fetchMembers();
-    void fetchEscalations();
+    void fetchAll();
 
     // Poll escalations every 3 seconds
     const interval = setInterval(fetchEscalations, 3000);
     return () => clearInterval(interval);
-  }, [fetchMembers, fetchEscalations]);
+  }, [fetchAll, fetchEscalations]);
 
-  const loading = members.length === 0 && escalations.length === 0;
-
-  return { members, escalations, loading, fetchChannels, triggerEscalation, createEscalation: triggerEscalation, refetch: fetchMembers };
+  return { members, escalations, loading, triggerEscalation, createEscalation: triggerEscalation, refetch: fetchAll };
 }

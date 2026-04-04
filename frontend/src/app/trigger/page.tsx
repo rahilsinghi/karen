@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { FortressLayout } from "@/components/FortressLayout";
 import { StonePanel } from "@/components/StonePanel";
 import { RitualButton } from "@/components/RitualButton";
@@ -13,8 +13,9 @@ import type { EscalationSpeed, Personality } from "@/lib/types";
 const personalities: Personality[] = ["passive_aggressive", "corporate", "genuinely_concerned", "life_coach"];
 const speeds: EscalationSpeed[] = ["demo", "demo_10s", "quick", "standard", "patient"];
 
-export default function TriggerPage() {
+function TriggerPageInner() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { members, triggerEscalation } = useCircle();
   const [initiator, setInitiator] = useState("rahil");
   const [target, setTarget] = useState("");
@@ -32,6 +33,25 @@ export default function TriggerPage() {
   const [maxLevel, setMaxLevel] = useState(6);
   const [submitting, setSubmitting] = useState(false);
   const [useGameMode, setUseGameMode] = useState(true);
+  const [showError, setShowError] = useState(false);
+
+  const fillDemo = () => {
+    if (members.length > 0) {
+      const other = members.find(m => m.id !== "rahil");
+      if (other) setTarget(other.id);
+    }
+    setGrievanceDetail("They stole my favorite stapler and refused to acknowledge the theft in the group chat. This is a violation of the sacred office code and must be rectified immediately by the OpenClaw Fortress.");
+    setShowError(false);
+  };
+
+  // Deep linking logic
+  useEffect(() => {
+    const targetName = searchParams.get("target");
+    if (targetName && members.length > 0) {
+      const found = members.find(m => m.name.toLowerCase() === targetName.toLowerCase() || m.id === targetName);
+      if (found) setTarget(found.id);
+    }
+  }, [searchParams, members]);
 
   useEffect(() => {
     if (members.length > 0 && !members.some((m) => m.id === initiator)) {
@@ -87,9 +107,35 @@ export default function TriggerPage() {
       title="MISSION ALTAR // INITIATE STRIKE"
       subtitle="COMMAND CENTER OF MALICE"
       rightSidebar={<OpenClawCoreCard status="CONSULTING" />}
-      bottomZone={<RitualButton label="UNLEASH KAREN 🦞" subtitle="THE LOBSTER AWAKENS" variant="primary" className="min-h-[7rem]" disabled={submitting || !target || !grievanceDetail} onClick={launch} />}
+      bottomZone={
+        <div className="flex flex-col gap-2 w-full">
+          <RitualButton
+            label="UNLEASH KAREN 🦞"
+            subtitle="THE LOBSTER AWAKENS"
+            variant="primary"
+            className="min-h-[7rem]"
+            disabled={submitting || !target || !grievanceDetail}
+            onClick={launch}
+          />
+          {(!target || !grievanceDetail) && (
+            <div className="text-center py-2 bg-red-950/40 border-2 border-red-900 animate-pulse">
+              <span className="pixel-text text-[0.65rem] text-red-400 uppercase tracking-widest font-bold">
+                ⚠ Mission Blocked: {!target ? "No Target Selected" : "Grievance Detail Missing"}
+              </span>
+            </div>
+          )}
+        </div>
+      }
     >
-      <div className="grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
+      <div className="grid gap-6 p-2">
+        <div className="flex justify-end">
+          <button
+            onClick={fillDemo}
+            className="mc-button px-6 h-10 text-[0.6rem] bg-indigo-900 border-indigo-500 hover:bg-indigo-800"
+          >
+            ⚡ QUICK FILL FOR TEST
+          </button>
+        </div>
         <StonePanel title="TARGET SELECTOR" eyebrow="GRIEVANCE FORGE">
           <div className="grid gap-4 md:grid-cols-2">
             <label className="grid gap-2">
@@ -255,5 +301,13 @@ export default function TriggerPage() {
         </div>
       </div>
     </FortressLayout>
+  );
+}
+
+export default function TriggerPage() {
+  return (
+    <Suspense fallback={<div className="pixel-text text-text p-20 animate-pulse">ESTABLISHING MISSION CHANNEL...</div>}>
+      <TriggerPageInner />
+    </Suspense>
   );
 }

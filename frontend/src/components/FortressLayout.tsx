@@ -80,11 +80,10 @@ export function FortressLayout({
                       <motion.div
                         whileHover={{ x: 3 }}
                         whileTap={{ y: 4 }}
-                        className={`stone-brick-wall relative flex items-center gap-3 border-4 border-border px-3 py-3 ${
-                          active
+                        className={`stone-brick-wall relative flex items-center gap-3 border-4 border-border px-3 py-3 ${active
                             ? "shadow-[inset_3px_3px_0_rgba(255,255,255,0.12),inset_-3px_-3px_0_rgba(0,0,0,0.42),0_0_18px_rgba(255,79,216,0.22)]"
                             : "shadow-[inset_3px_3px_0_rgba(255,255,255,0.08),inset_-3px_-3px_0_rgba(0,0,0,0.38)]"
-                        }`}
+                          }`}
                       >
                         <span className="pixel-text text-[0.9rem] text-fortress-pink">{item.icon}</span>
                         <span className="pixel-text text-[0.74rem] leading-tight text-text">{item.label}</span>
@@ -109,8 +108,8 @@ export function FortressLayout({
             {bottomZone}
           </section>
 
-          <aside className="min-h-[18rem]">
-            {rightSidebar ?? <div className="fortress-panel h-full p-4" />}
+          <aside className="min-h-[18rem] flex flex-col">
+            {rightSidebar ?? <div className="fortress-panel flex-1 p-4" />}
           </aside>
         </div>
       </div>

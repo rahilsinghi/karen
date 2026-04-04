@@ -1,5 +1,4 @@
 /* Pixel-art utilities for the Karen Command Center (EXACT REFERENCE MATCH) */
-@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap');
 
 @layer utilities {
   .bg-stone-bricks {
@@ -372,7 +371,16 @@
       inset -4px -4px 0 #999;
   }
 
-  .custom-scrollbar::-webkit-scrollbar { width: 6px; }
-  .custom-scrollbar::-webkit-scrollbar-track { background: #0d0d0d; }
-  .custom-scrollbar::-webkit-scrollbar-thumb { background: #3a3a3a; border-radius: 3px; }
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: #0d0d0d;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #3a3a3a;
+    border-radius: 3px;
+  }
 }

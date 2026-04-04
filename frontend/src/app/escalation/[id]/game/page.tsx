@@ -4,6 +4,7 @@ import { use, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useEscalation } from "@/hooks/useEscalation";
 import { KarenGameMode } from "@/components/game/KarenGameMode";
+import { PixelArenaGame } from "@/components/game/PixelArenaGame";
 import { useKarenAudio } from "@/hooks/useKarenAudio";
 import { useBackgroundMusic } from "@/hooks/useBackgroundMusic";
 import { useEffect } from "react";
@@ -78,7 +79,7 @@ function GamePageInner({ id }: { id: string }) {
     }
 
     return (
-        <KarenGameMode
+        <PixelArenaGame
             escalation={escalation}
             events={events}
             onResolve={() => void resolve()}

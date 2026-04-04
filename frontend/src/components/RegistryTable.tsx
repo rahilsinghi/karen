@@ -14,7 +14,7 @@ function toneForPhase(phase: string) {
 
 export function RegistryTable({ rows }: { rows: DossierRow[] }) {
   return (
-    <div className="stone-brick-wall fortress-panel h-full overflow-hidden">
+    <div className="stone-brick-wall fortress-panel min-h-0 overflow-hidden">
       <div className="border-b-4 border-border bg-[#7b7979] px-4 py-2">
         <div className="pixel-text text-center text-[0.9rem] text-[#161215]">LIST OF TARGETS</div>
       </div>
