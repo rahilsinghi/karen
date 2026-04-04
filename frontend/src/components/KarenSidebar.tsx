@@ -11,10 +11,10 @@ import {
 import type { KarenEvent } from "@/lib/types";
 
 // ---------- constants ----------
-const KAREN_FONT = '13px "DM Mono", monospace';
+const KAREN_FONT = '16px "VT323", monospace';
 const LINE_HEIGHT = 20; // px
 const BUBBLE_PADDING_X = 24; // 12px each side
-const TYPEWRITER_LINE_DELAY_MS = 80;
+const TYPEWRITER_LINE_DELAY_MS = 60;
 
 // ---------- types ----------
 interface CommentaryEntry {
@@ -33,9 +33,6 @@ interface BubbleMeasurement {
 }
 
 // ---------- shrinkwrap binary search ----------
-// Given prepared text and a container width, binary-search for the tightest
-// width that doesn't increase the line count beyond what the container would
-// produce. This eliminates dead whitespace on the right side of chat bubbles.
 function shrinkwrapWidth(
   prepared: ReturnType<typeof prepare>,
   containerWidth: number
@@ -44,9 +41,6 @@ function shrinkwrapWidth(
   const targetLines = baseResult.lineCount;
 
   if (targetLines <= 1) {
-    // Single line: use prepareWithSegments to get exact width
-    // but we only have PreparedText here — fall back to binary search
-    // with a tight lower bound.
     let lo = 0;
     let hi = containerWidth;
     while (hi - lo > 1) {
@@ -61,7 +55,6 @@ function shrinkwrapWidth(
     return hi;
   }
 
-  // Multi-line: find the narrowest width that keeps the same line count.
   let lo = 0;
   let hi = containerWidth;
   while (hi - lo > 1) {
@@ -86,7 +79,6 @@ function measureBubble(
   const tightContent = shrinkwrapWidth(prepared, contentWidth);
   const tightWidth = tightContent + BUBBLE_PADDING_X;
 
-  // Get line data for typewriter
   const preparedSeg = prepareWithSegments(text, KAREN_FONT);
   const result = layoutWithLines(preparedSeg, tightContent, LINE_HEIGHT);
 
@@ -117,19 +109,16 @@ function TypewriterBubble({
     null
   );
 
-  // Measure on mount / when text or container changes
   useEffect(() => {
     if (containerWidth <= 0) return;
     const m = measureBubble(text, containerWidth);
     setMeasurement(m);
   }, [text, containerWidth]);
 
-  // Typewriter: reveal lines one by one
   useEffect(() => {
     if (!isNew || !measurement) return;
     if (visibleLineCount >= measurement.lineCount) return;
 
-    // Start revealing from line 1
     if (visibleLineCount === 0) {
       setVisibleLineCount(1);
       return;
@@ -155,24 +144,24 @@ function TypewriterBubble({
       transition={{ duration: 0.2, ease: "easeOut" }}
       className="flex items-start gap-2"
     >
-      <span className="text-sm mt-1.5 shrink-0 select-none">🦞</span>
+      <span className="text-xl mt-1 shrink-0 select-none drop-shadow-sm">👿</span>
       <div>
         <div
-          className="border border-[#1e1e2e] rounded-sm px-3 py-2.5 relative overflow-hidden"
+          className="pixel-border-obsidian px-3 py-2.5 relative overflow-hidden"
           style={{
             width: tightWidth,
-            maxWidth: containerWidth - 32, // leave room for avatar + gap
-            backgroundColor: "#12121a",
+            maxWidth: containerWidth - 32,
+            backgroundColor: "#1a1a1a",
           }}
         >
-          {/* Subtle amber left accent */}
+          {/* Evil Redstone Accent */}
           <div
-            className="absolute left-0 top-0 bottom-0 w-[2px]"
-            style={{ backgroundColor: "#f59e0b", opacity: 0.4 }}
+            className="absolute left-0 top-0 bottom-0 w-[4px]"
+            style={{ backgroundColor: "#bb1a1a", opacity: 0.8 }}
           />
 
           <div
-            className="font-mono text-xs leading-[20px] text-[#f8f8ff]/80"
+            className="font-mono text-lg leading-[20px] text-text/90 text-shadow-pixel"
             style={{ whiteSpace: "pre-wrap" }}
           >
             {displayLines.map((line, i) => (
@@ -181,20 +170,18 @@ function TypewriterBubble({
                 {i < displayLines.length - 1 ? "\n" : ""}
               </span>
             ))}
-            {/* Blinking cursor during typewriter */}
             {isNew && !showAll && (
-              <span className="inline-block w-[1px] h-3 bg-[#f59e0b] ml-0.5 animate-pulse align-middle" />
+              <span className="inline-block w-[6px] h-4 bg-red-600 ml-0.5 animate-pulse align-middle" />
             )}
           </div>
         </div>
 
-        {/* Timestamp - only show after typewriter completes */}
         {timestamp && showAll && (
           <motion.p
             initial={isNew ? { opacity: 0 } : false}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.1 }}
-            className="font-mono text-[10px] text-[#6b6b8a] mt-1 ml-1"
+            className="font-mono text-xs text-muted mt-1 ml-1"
           >
             {new Date(timestamp).toLocaleTimeString()}
           </motion.p>
@@ -230,7 +217,6 @@ export function KarenSidebar({ events }: KarenSidebarProps) {
       }));
   }, [events]);
 
-  // Track container width via ResizeObserver
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
@@ -244,34 +230,30 @@ export function KarenSidebar({ events }: KarenSidebarProps) {
     return () => observer.disconnect();
   }, []);
 
-  // Mark entries that have already been seen (no typewriter for those)
   const markSeen = useCallback(() => {
     setSeenCount(commentaries.length);
   }, [commentaries.length]);
 
   useEffect(() => {
-    // After a short delay, mark current entries as seen so future entries
-    // get typewriter but re-renders of existing ones do not.
     const timer = setTimeout(markSeen, commentaries.length * TYPEWRITER_LINE_DELAY_MS * 4 + 500);
     return () => clearTimeout(timer);
   }, [commentaries.length, markSeen]);
 
-  // Auto-scroll to bottom
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [commentaries.length]);
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full bg-stone pixel-border-stone">
       {/* Header */}
-      <div className="flex items-center gap-2 px-4 py-3 border-b border-[#1e1e2e]">
-        <span className="text-2xl">🦞</span>
+      <div className="flex items-center gap-3 px-4 py-4 border-b-4 border-black bg-stone/50">
+        <span className="text-3xl drop-shadow-md">💀</span>
         <div>
-          <h2 className="font-display font-semibold text-sm text-[#f8f8ff]">
-            Karen&apos;s Commentary
+          <h2 className="font-display font-bold text-lg text-black uppercase tracking-wider text-shadow-pixel">
+            THE ARSENAL
           </h2>
-          <p className="font-mono text-[10px] text-[#6b6b8a]">
-            Internal monologue
+          <p className="font-mono text-xs text-black/70">
+            Malice Monitoring System
           </p>
         </div>
       </div>
@@ -279,13 +261,13 @@ export function KarenSidebar({ events }: KarenSidebarProps) {
       {/* Chat area */}
       <div
         ref={containerRef}
-        className="flex-1 overflow-y-auto p-4 space-y-3"
+        className="flex-1 overflow-y-auto p-4 space-y-4 bg-obsidian/30 ml-1 mr-1 mt-1 mb-1"
       >
         {commentaries.length === 0 && (
-          <div className="flex items-center gap-2 py-8 justify-center">
-            <span className="text-sm">🦞</span>
-            <p className="font-mono text-xs text-[#6b6b8a] italic">
-              Karen is preparing...
+          <div className="flex flex-col items-center gap-3 py-10 justify-center">
+            <span className="text-4xl animate-bounce">👿</span>
+            <p className="font-mono text-sm text-black/60 italic text-center">
+              Karen is plotting her next move...
             </p>
           </div>
         )}
@@ -305,9 +287,9 @@ export function KarenSidebar({ events }: KarenSidebarProps) {
       </div>
 
       {/* Footer */}
-      <div className="px-4 py-2 border-t border-[#1e1e2e]">
-        <p className="font-mono text-[9px] text-[#6b6b8a]/60 text-center">
-          Karen is always watching. Karen means well.
+      <div className="px-4 py-3 border-t-4 border-black bg-stone/40">
+        <p className="font-mono text-xs text-black font-bold text-center uppercase tracking-tighter">
+          NO REMORSE. NO REFUNDS.
         </p>
       </div>
     </div>

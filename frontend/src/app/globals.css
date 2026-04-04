@@ -1,28 +1,40 @@
+@import url('https://fonts.googleapis.com/css2?family=VT323&family=Silkscreen:wght@400;700&display=swap');
+@import "./pixel-theme.css";
 @import "tailwindcss";
-@import "@fontsource/dm-mono/400.css";
-@import "@fontsource/dm-mono/500.css";
 
 @theme inline {
-  /* Karen's color system */
-  --color-bg: #0a0a0f;
-  --color-surface: #12121a;
-  --color-border: #1e1e2e;
-  --color-text: #f8f8ff;
-  --color-muted: #6b6b8a;
-  --color-karen: #f59e0b;
+  /* Karen's Evil Minecraft color system */
+  --color-bg: #0d0d0d;
+  /* Deep Void */
+  --color-surface: #1a1a1a;
+  /* Obsidian */
+  --color-border: #000000;
+  /* Pixel Border */
+  --color-text: #e0e0e0;
+  /* Light Gray */
+  --color-muted: #5a5a5a;
+  /* Stone Gray */
+  --color-karen: #ff0000;
+  /* Redstone Red */
 
-  /* Escalation level colors */
-  --color-level-green: #22c55e;
-  --color-level-yellow: #eab308;
-  --color-level-orange: #f97316;
-  --color-level-red: #ef4444;
-  --color-level-purple: #a855f7;
-  --color-level-nuclear: #ec4899;
+  /* Escalation level colors (Minecraft variants) */
+  --color-level-green: #3fb11a;
+  /* Grass/Emerald */
+  --color-level-yellow: #f9d72f;
+  /* Gold */
+  --color-level-orange: #d97a10;
+  /* Copper */
+  --color-level-red: #bb1a1a;
+  /* Redstone */
+  --color-level-purple: #4e1b8c;
+  /* Crying Obsidian */
+  --color-level-nuclear: #ff00ff;
+  /* Enderman/Pink */
 
   /* Fonts */
-  --font-display: "Syne", sans-serif;
-  --font-mono: "DM Mono", monospace;
-  --font-body: "DM Sans", sans-serif;
+  --font-display: "Silkscreen", sans-serif;
+  --font-mono: "VT323", monospace;
+  --font-body: "VT323", monospace;
 }
 
 * {
@@ -39,9 +51,11 @@ body {
 ::-webkit-scrollbar {
   width: 6px;
 }
+
 ::-webkit-scrollbar-track {
   background: var(--color-bg);
 }
+
 ::-webkit-scrollbar-thumb {
   background: var(--color-border);
   border-radius: 3px;
@@ -49,32 +63,82 @@ body {
 
 /* Pulse animations for status badges */
 @keyframes pulse-green {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4); }
-  50% { box-shadow: 0 0 0 6px rgba(34, 197, 94, 0); }
-}
-@keyframes pulse-yellow {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(234, 179, 8, 0.4); }
-  50% { box-shadow: 0 0 0 6px rgba(234, 179, 8, 0); }
-}
-@keyframes pulse-red {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
-  50% { box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
-}
-@keyframes pulse-nuclear {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(236, 72, 153, 0.5); }
-  50% { box-shadow: 0 0 12px 8px rgba(236, 72, 153, 0); }
+
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4);
+  }
+
+  50% {
+    box-shadow: 0 0 0 6px rgba(34, 197, 94, 0);
+  }
 }
 
-.pulse-green { animation: pulse-green 2s ease-in-out infinite; }
-.pulse-yellow { animation: pulse-yellow 2s ease-in-out infinite; }
-.pulse-red { animation: pulse-red 2s ease-in-out infinite; }
-.pulse-nuclear { animation: pulse-nuclear 1.5s ease-in-out infinite; }
+@keyframes pulse-yellow {
+
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(234, 179, 8, 0.4);
+  }
+
+  50% {
+    box-shadow: 0 0 0 6px rgba(234, 179, 8, 0);
+  }
+}
+
+@keyframes pulse-red {
+
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
+  }
+
+  50% {
+    box-shadow: 0 0 0 6px rgba(239, 68, 68, 0);
+  }
+}
+
+@keyframes pulse-nuclear {
+
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(236, 72, 153, 0.5);
+  }
+
+  50% {
+    box-shadow: 0 0 12px 8px rgba(236, 72, 153, 0);
+  }
+}
+
+.pulse-green {
+  animation: pulse-green 2s ease-in-out infinite;
+}
+
+.pulse-yellow {
+  animation: pulse-yellow 2s ease-in-out infinite;
+}
+
+.pulse-red {
+  animation: pulse-red 2s ease-in-out infinite;
+}
+
+.pulse-nuclear {
+  animation: pulse-nuclear 1.5s ease-in-out infinite;
+}
 
 /* Nuclear glow — box-shadow variant for cards */
 @keyframes glow-nuclear {
-  0%, 100% { box-shadow: 0 0 8px #ec4899, 0 0 20px #ec489944; }
-  50% { box-shadow: 0 0 16px #ec4899, 0 0 40px #ec489966; }
+
+  0%,
+  100% {
+    box-shadow: 0 0 8px #ec4899, 0 0 20px #ec489944;
+  }
+
+  50% {
+    box-shadow: 0 0 16px #ec4899, 0 0 40px #ec489966;
+  }
 }
+
 .glow-nuclear {
   animation: glow-nuclear 2s ease-in-out infinite;
   text-shadow: 0 0 10px rgba(236, 72, 153, 0.6), 0 0 20px rgba(236, 72, 153, 0.3);
@@ -82,9 +146,17 @@ body {
 
 /* Purple glow for Level 9 */
 @keyframes glow-purple {
-  0%, 100% { box-shadow: 0 0 6px #a855f7, 0 0 15px #a855f744; }
-  50% { box-shadow: 0 0 12px #a855f7, 0 0 30px #a855f766; }
+
+  0%,
+  100% {
+    box-shadow: 0 0 6px #a855f7, 0 0 15px #a855f744;
+  }
+
+  50% {
+    box-shadow: 0 0 12px #a855f7, 0 0 30px #a855f766;
+  }
 }
+
 .glow-purple {
   animation: glow-purple 2.5s ease-in-out infinite;
 }

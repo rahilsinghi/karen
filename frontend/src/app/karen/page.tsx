@@ -1,101 +1,104 @@
 export default function KarenLorePage() {
   return (
-    <div className="max-w-2xl mx-auto px-6 py-10">
-      <div className="text-center mb-12">
-        <span className="text-8xl block mb-6">🦞</span>
-        <h1 className="font-display text-5xl font-bold tracking-tight">
-          KAREN
+    <div className="max-w-3xl mx-auto px-6 py-12">
+      <div className="text-center mb-16">
+        <span className="text-9xl block mb-8 animate-pulse drop-shadow-[0_0_20px_rgba(255,0,0,0.8)]">💀</span>
+        <h1 className="font-display text-7xl font-bold tracking-tighter uppercase text-shadow-pixel">
+          KAREN-01
         </h1>
-        <p className="font-mono text-sm text-karen mt-2">
-          Automated Correspondence Systems LLC
+        <p className="font-mono text-lg text-red-600 mt-2 font-bold uppercase tracking-widest">
+          AUTOMATED MALICE EMULATOR
         </p>
-        <p className="font-mono text-xs text-muted mt-1">
-          &ldquo;Karen gets results.&rdquo;
+        <p className="font-mono text-sm text-stone-500 mt-2 italic font-bold uppercase">
+          &ldquo;GRIEVANCES ARE MEANT TO BE SOLVED. OR PUNISHED.&rdquo;
         </p>
       </div>
 
-      <div className="space-y-8 font-mono text-sm text-text/80 leading-relaxed">
-        <section>
-          <h2 className="font-display text-lg font-semibold text-text mb-3">
-            Who is Karen?
+      <div className="space-y-12 font-mono text-base text-stone-400 leading-relaxed">
+        <section className="pixel-border-obsidian bg-obsidian p-8 shadow-xl">
+          <h2 className="font-display text-3xl font-bold text-white mb-4 uppercase tracking-tighter text-shadow-pixel">
+            THE ENTITY
           </h2>
-          <p>
-            Karen is a professional follow-up agent. She treats every
-            non-response as a crisis and every crisis as an opportunity to
-            escalate — across 10 channels, with 4 distinct personalities,
-            against anyone in The Circle.
-          </p>
-          <p className="mt-2">
-            She is not malicious. She is not insecure. She is deeply,
-            committedly, professionally unhinged. She means well. She always
-            has.
-          </p>
+          <div className="space-y-4 font-bold uppercase text-sm">
+            <p>
+              KAREN IS A HIGH-FIDELITY ESCALATION ENGINE. SHE TREATS EVERY
+              SILENCE AS A DECLARATION OF WAR. HER PURPOSE IS TO ENSURE
+              THAT YOUR GRIEVANCES ARE NOT JUST HEARD, BUT FELT.
+            </p>
+            <p>
+              SHE OPERATES ACROSS 10 DISCRETE ATTACK VECTORS, UTILIZING
+              4 UNIQUE PSYCHOLOGICAL SUBROUTINES TO BREAK THE TARGET'S RESOLVE.
+            </p>
+            <p className="text-red-500">
+              SHE IS NOT MALICIOUS. SHE IS MATHEMATICALLY PERSISTENT.
+            </p>
+          </div>
         </section>
 
-        <section>
-          <h2 className="font-display text-lg font-semibold text-text mb-3">
-            The 10-Level Escalation Ladder
+        <section className="pixel-border-obsidian bg-obsidian p-8 shadow-xl">
+          <h2 className="font-display text-3xl font-bold text-white mb-6 uppercase tracking-tighter text-shadow-pixel">
+            THE ESCALATION ARSENAL
           </h2>
-          <div className="space-y-1">
+          <div className="space-y-2">
             {[
-              { level: 1, label: "Email (warm)", color: "text-level-green" },
-              { level: 2, label: "Email bump + SMS", color: "text-level-green" },
-              { level: 3, label: "Email tone shift + WhatsApp", color: "text-level-yellow" },
-              { level: 4, label: "Email CC + SMS to CC'd person", color: "text-level-yellow" },
-              { level: 5, label: "LinkedIn InMail", color: "text-level-orange" },
-              { level: 6, label: "Google Calendar event", color: "text-level-orange" },
-              { level: 7, label: "Discord @everyone", color: "text-level-red" },
-              { level: 8, label: "Open Matters (public)", color: "text-level-red" },
-              { level: 9, label: "Twitter/X post", color: "text-level-purple" },
-              { level: 10, label: "FedEx formal letter", color: "text-level-nuclear glow-nuclear" },
+              { level: 1, label: "EMAIL (WARMUP)", color: "text-green-500" },
+              { level: 2, label: "EMAIL BUMP + SMS PROBE", color: "text-green-400" },
+              { level: 3, label: "TONE SHIFT + WHATSAPP BREACH", color: "text-yellow-500" },
+              { level: 4, label: "CC DOMINANCE + SURROGATE SMS", color: "text-yellow-400" },
+              { level: 5, label: "LINKEDIN INMAIL INTRUSION", color: "text-orange-500" },
+              { level: 6, label: "CALENDAR HIJACK (THE GHOST MEETING)", color: "text-orange-400" },
+              { level: 7, label: "DISCORD @EVERYONE COLLATERAL", color: "text-red-500" },
+              { level: 8, label: "PUBLIC WAR ROOM (OPEN MATTERS)", color: "text-red-400" },
+              { level: 9, label: "X/TWITTER BROADCAST (SOCIAL DEATH)", color: "text-purple-500" },
+              { level: 10, label: "FEDEX FORMAL STRIKE (PHYSICAL REALITY)", color: "text-red-600 animate-pulse text-shadow-pixel" },
             ].map(({ level, label, color }) => (
-              <div key={level} className="flex items-center gap-3">
-                <span className={`font-bold w-6 text-right ${color}`}>
+              <div key={level} className="flex items-center gap-4 group">
+                <span className={`font-display text-2xl font-bold w-8 text-right ${color}`}>
                   {level}
                 </span>
-                <span className="text-muted">—</span>
-                <span>{label}</span>
+                <span className="text-stone-700 font-bold">{">>>"}</span>
+                <span className="font-bold uppercase tracking-tighter group-hover:text-white transition-colors">{label}</span>
               </div>
             ))}
           </div>
         </section>
 
-        <section>
-          <h2 className="font-display text-lg font-semibold text-text mb-3">
-            Karen&apos;s 4 Personalities
+        <section className="pixel-border-obsidian bg-obsidian p-8 shadow-xl">
+          <h2 className="font-display text-3xl font-bold text-white mb-6 uppercase tracking-tighter text-shadow-pixel">
+            ATTACK SUBROUTINES
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             {[
               {
-                name: "Passive Aggressive",
-                desc: "Technically polite. Radiates menace. Escalates emojis.",
-                quote: "He was online. I noticed.",
+                name: "PASSIVE AGGRESSIVE",
+                desc: "TECHNICALLY POLITE. RADIATES MENACE. EMOJI OVERLOAD.",
+                quote: "HE WAS ONLINE. I NOTICED.",
               },
               {
-                name: "Corporate",
-                desc: "Project manager energy. Zero emotional acknowledgment.",
-                quote: "Per my last communication, please advise on timeline.",
+                name: "CORPORATE EXECUTOR",
+                desc: "PM ENERGY. ZERO EMOTION. PURE BUREAUCRATIC FURY.",
+                quote: "PER MY LAST STRIKE, PLEASE ADVISE ON RESOLUTION.",
               },
               {
-                name: "Genuinely Concerned",
-                desc: "Thinks she is helping. Never winks. Believes she is saving the friendship.",
-                quote: "$23 is not worth a friendship. Please resolve this.",
+                name: "CONCERNED STALKER",
+                desc: "THINKS SHE IS HELPING. NEVER WINKS. GASLIGHTING ENABLED.",
+                quote: "OUR SHARED FUTURE REQUIRES THIS $23 DEBT TO END.",
               },
               {
-                name: "Life Coach",
-                desc: "Reframes every escalation as personal growth.",
-                quote: "Unresolved financial obligations create energetic blocks.",
+                name: "CHAOS COACH",
+                desc: "REFRAMES AGGRESSION AS SPIRITUAL ASCENSION.",
+                quote: "UNPAID DEBTS ARE ANCHORS TO YOUR LOWER SELF.",
               },
             ].map(({ name, desc, quote }) => (
               <div
                 key={name}
-                className="border border-border rounded-sm p-4 bg-surface"
+                className="pixel-border-stone bg-stone-900/50 p-6 hover:bg-stone-900 transition-colors group"
               >
-                <h3 className="font-display font-semibold text-sm text-karen">
+                <h3 className="font-display text-xl font-bold text-red-500 uppercase mb-2 group-hover:text-red-400">
                   {name}
                 </h3>
-                <p className="text-xs text-muted mt-1">{desc}</p>
-                <p className="text-xs text-text/60 mt-2 italic">
+                <p className="text-xs text-stone-500 font-bold uppercase mb-4 leading-tight">{desc}</p>
+                <p className="text-sm text-stone-300 font-bold italic border-l-2 border-red-900 pl-3">
                   &ldquo;{quote}&rdquo;
                 </p>
               </div>
@@ -103,27 +106,28 @@ export default function KarenLorePage() {
           </div>
         </section>
 
-        <section>
-          <h2 className="font-display text-lg font-semibold text-text mb-3">
-            How Karen Works
+        <section className="pixel-border-obsidian bg-obsidian p-8 shadow-xl">
+          <h2 className="font-display text-3xl font-bold text-white mb-4 uppercase tracking-tighter text-shadow-pixel">
+            CORE PROTOCOL
           </h2>
-          <p>
-            Karen always identifies herself. She never impersonates anyone. She
-            sends messages AS herself, ON BEHALF OF the initiator.
-          </p>
-          <div className="border border-border rounded-sm bg-bg p-4 mt-3">
-            <p className="text-xs text-muted italic">
-              &ldquo;Hi [target], I&apos;m Karen — reaching out on behalf of
-              [initiator] about [grievance]. [initiator] has asked me to follow
-              up.&rdquo;
+          <div className="space-y-4 font-bold uppercase text-sm">
+            <p>
+              KAREN ALWAYS DECLARES HER ORIGIN. SHE IS AN AGENT OF
+              THE INITIATOR, BUT SHE ACTS WITH HER OWN SOVEREIGN FURY.
             </p>
+            <div className="pixel-border-stone bg-black p-6">
+              <p className="text-sm text-stone-400 italic">
+                &ldquo;TARGET ACQUIRED. I AM KAREN — ACTING ON BEHALF OF
+                [INITIATOR]. YOU HAVE AN OUTSTANDING GRIEVANCE: [DETAIL].
+                I DO NOT SLEEP until THIS IS RESOLVED.&rdquo;
+              </p>
+            </div>
           </div>
         </section>
 
-        <section className="text-center pt-4">
-          <p className="text-xs text-muted">
-            Karen has never once considered that maybe the other person is just
-            busy.
+        <section className="text-center pt-8">
+          <p className="font-mono text-sm text-stone-600 font-bold uppercase italic animate-pulse">
+            "KAREN HAS NEVER CONSIDERED THE POSSIBILITY OF FORGIVENESS."
           </p>
         </section>
       </div>
