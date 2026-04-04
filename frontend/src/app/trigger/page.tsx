@@ -148,7 +148,7 @@ export default function TriggerPage() {
             {grievanceType === "communication" && (
               <>
                 <label className="grid gap-2">
-                  <span className="pixel-text text-[0.6rem] text-muted">Platform</span>
+                  <span className="pixel-text text-[0.6rem] text-muted">Where Were You Ghosted?</span>
                   <select className="stone-input px-3 py-3" value={platform} onChange={(event) => setPlatform(event.target.value)}>
                     <option value="discord">Discord</option>
                     <option value="imessage">iMessage</option>
@@ -206,21 +206,38 @@ export default function TriggerPage() {
         <div className="grid gap-4">
           <StonePanel title="PERSONALITY ALTAR" eyebrow="BOSS CLASSES">
             <div className="grid gap-3 md:grid-cols-2">
-              {personalities.map((option) => (
-                <button
-                  key={option}
-                  onClick={() => setPersonality(option)}
-                  className={`fortress-panel p-4 text-left ${personality === option ? "ring-4 ring-fortress-pink/40" : ""}`}
-                >
-                  <div className="pixel-text text-[0.8rem] text-text">{option.replaceAll("_", " ")}</div>
-                  <div className="mt-2 font-mono text-[0.95rem] uppercase text-muted">
-                    {option === "passive_aggressive" && "Needling elegance"}
-                    {option === "corporate" && "Policy-flavored pressure"}
-                    {option === "genuinely_concerned" && "Warmth with teeth"}
-                    {option === "life_coach" && "Motivational menace"}
-                  </div>
-                </button>
-              ))}
+              {personalities.map((option) => {
+                const selected = personality === option;
+                return (
+                  <button
+                    key={option}
+                    onClick={() => setPersonality(option)}
+                    className={`p-4 text-left cursor-pointer transition-all duration-150 border-4 ${
+                      selected
+                        ? "border-fortress-pink bg-fortress-pink/10 shadow-[0_0_20px_rgba(236,72,153,0.25)] scale-[1.02]"
+                        : "border-border bg-surface hover:border-fortress-pink/30 hover:bg-fortress-pink/5"
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className={`text-lg ${selected ? "opacity-100" : "opacity-30"}`}>
+                        {option === "passive_aggressive" ? "🙂" : option === "corporate" ? "📋" : option === "genuinely_concerned" ? "💕" : "🧘"}
+                      </span>
+                      <div className={`pixel-text text-[0.8rem] ${selected ? "text-fortress-pink" : "text-text"}`}>
+                        {option.replaceAll("_", " ")}
+                      </div>
+                    </div>
+                    <div className="mt-2 font-mono text-[0.85rem] uppercase text-muted">
+                      {option === "passive_aggressive" && "Needling elegance"}
+                      {option === "corporate" && "Policy-flavored pressure"}
+                      {option === "genuinely_concerned" && "Warmth with teeth"}
+                      {option === "life_coach" && "Motivational menace"}
+                    </div>
+                    {selected && (
+                      <div className="mt-2 pixel-text text-[0.5rem] text-fortress-pink uppercase">● SELECTED</div>
+                    )}
+                  </button>
+                );
+              })}
             </div>
           </StonePanel>
           <StonePanel title="KAREN PREVIEW TRANSMISSION" eyebrow="LIVE SAMPLE">
