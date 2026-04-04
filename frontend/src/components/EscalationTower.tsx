@@ -8,16 +8,16 @@ interface EscalationTowerProps {
 }
 
 const LEVEL_ICONS: Record<number, string> = {
-    1: "📜", // Email Scroll
-    2: "📱", // SMS Rune
-    3: "💀", // WhatsApp Skull Orb
-    4: "👁️", // CC Sigil / Witness
-    5: "💼", // LinkedIn Briefcase
-    6: "🕯️", // Calendar Ritual
-    7: "🚨", // Discord Siren
-    8: "📖", // Open Matters Ledger
-    9: "🐦", // Twitter Chaos
-    10: "☢️", // FedEx Doom
+    1: "📧", // Email
+    2: "📱", // SMS
+    3: "📞", // WhatsApp + Voice
+    4: "🔍", // OSINT Research
+    5: "👁️", // Email CC
+    6: "💼", // Slack
+    7: "🚨", // Discord @everyone
+    8: "📅", // Google Calendar
+    9: "📖", // Open Matters
+    10: "☢️", // FedEx Letter
 };
 
 export function EscalationTower({ currentLevel }: EscalationTowerProps) {

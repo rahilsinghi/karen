@@ -6,8 +6,10 @@ import { useEscalation } from "@/hooks/useEscalation";
 import { useCircle } from "@/hooks/useCircle";
 import { EscalationTower } from "@/components/EscalationTower";
 import { KarenBossCard } from "@/components/KarenBossCard";
+import ResearchAnimation from "@/components/ResearchAnimation";
 import {
   PERSONALITY_LABELS,
+  SATISFACTION_LABELS,
   getLevelColorClass,
 } from "@/lib/constants";
 import { useKarenAudio } from "@/hooks/useKarenAudio";
@@ -137,6 +139,20 @@ function EscalationPageInner({ id }: { id: string }) {
               {isResolved ? "NEUTRALIZED" : escalation.status.toUpperCase()}
             </span>
           </div>
+          {(() => {
+            const sat = SATISFACTION_LABELS[currentLevel] ?? SATISFACTION_LABELS[0];
+            return (
+              <motion.div
+                key={currentLevel}
+                initial={{ scale: 1.2, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                className="flex items-center gap-2 font-mono text-xs"
+              >
+                <span className="text-lg">{sat.emoji}</span>
+                <span className="text-stone-500 uppercase font-bold">{sat.label}</span>
+              </motion.div>
+            );
+          })()}
           <div className="flex gap-2">
             {Array.from({ length: 5 }, (_, i) => (
               <div key={i} className={`w-12 h-1 ${i < currentLevel / 2 ? 'bg-red-600' : 'bg-stone-800'}`} />
@@ -195,6 +211,33 @@ function EscalationPageInner({ id }: { id: string }) {
               ))}
             </div>
           </div>
+
+          {/* Research Animation (Level 4) */}
+          {events.some(e => e.type === "research_step") && (
+            <div className="boss-frame-obsidian p-4">
+              <ResearchAnimation events={events} />
+            </div>
+          )}
+
+          {/* FedEx Rate (Level 10) */}
+          {events.filter(e => e.type === "fedex_rate").map((e, idx) => (
+            e.type === "fedex_rate" && (
+              <motion.div
+                key={idx}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="boss-frame-obsidian p-4"
+              >
+                <h4 className="font-display text-sm text-amber-500 font-bold uppercase mb-2">FEDEX_RATE_QUOTE</h4>
+                <div className="font-mono text-sm text-amber-400">
+                  ${e.rate} — {e.service}
+                </div>
+                <div className="font-mono text-[10px] text-stone-500 mt-1">
+                  {e.destination}
+                </div>
+              </motion.div>
+            )
+          ))}
 
           {/* Deescalation Steps */}
           {events.some(e => e.type === "deescalation_step") && (

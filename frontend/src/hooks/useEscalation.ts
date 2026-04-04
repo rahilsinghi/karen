@@ -16,6 +16,9 @@ const EVENT_TYPES = [
   "complete",
   "error",
   "audio",
+  "research_step",
+  "research_discovery",
+  "fedex_rate",
 ] as const;
 
 const REFRESH_EVENTS = new Set([
