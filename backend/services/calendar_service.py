@@ -17,6 +17,7 @@ async def create_event(
     Returns (success, detail, event_id).
     """
     creds_path = os.environ.get("GOOGLE_CALENDAR_CREDENTIALS", "")
+    calendar_id = os.environ.get("GOOGLE_CALENDAR_ID", "primary")
 
     if not creds_path:
         return False, "No GOOGLE_CALENDAR_CREDENTIALS configured", ""
@@ -47,7 +48,6 @@ async def create_event(
                 "dateTime": end.isoformat() + "Z",
                 "timeZone": "America/New_York",
             },
-            "attendees": [{"email": target_email}],
             "reminders": {
                 "useDefault": False,
                 "overrides": [
@@ -59,9 +59,9 @@ async def create_event(
         }
 
         result = service.events().insert(
-            calendarId="primary",
+            calendarId=calendar_id,
             body=event_body,
-            sendUpdates="all",
+            sendUpdates="none",
         ).execute()
 
         event_id = result.get("id", "")
@@ -77,6 +77,7 @@ async def create_event(
 async def delete_event(event_id: str) -> tuple[bool, str]:
     """Delete a Google Calendar event."""
     creds_path = os.environ.get("GOOGLE_CALENDAR_CREDENTIALS", "")
+    calendar_id = os.environ.get("GOOGLE_CALENDAR_ID", "primary")
 
     if not creds_path or not event_id:
         return False, "Cannot delete: missing credentials or event ID"
@@ -92,7 +93,7 @@ async def delete_event(event_id: str) -> tuple[bool, str]:
         service = build("calendar", "v3", credentials=credentials)
 
         service.events().delete(
-            calendarId="primary",
+            calendarId=calendar_id,
             eventId=event_id,
         ).execute()
 

@@ -28,6 +28,11 @@ Thumbs.db
 # Docker / OpenClaw runtime data
 .openclaw-data/
 
+# secrets / service account keys
+*.json.key
+gcp-sa-key.json
+*-sa-key.json
+
 # misc
 *.log
 
