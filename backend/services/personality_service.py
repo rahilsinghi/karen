@@ -6,49 +6,17 @@ import os
 import re
 from pathlib import Path
 
-import anthropic
-
 from models.schemas import Personality
+from services.llm_provider import get_provider
 
-_PERSONALITY_DIR = Path("/openclaw/personalities")
+_PERSONALITY_DIR = Path(os.environ.get("PERSONALITY_DIR", "/openclaw/personalities"))
 _personality_prompts: dict[str, str] = {}
-_client: anthropic.AsyncAnthropic | None = None
-
-_MODEL = "claude-haiku-4-5-20251001"
 
 
-def _get_client() -> anthropic.AsyncAnthropic:
-    global _client
-    if _client is None:
-        _client = anthropic.AsyncAnthropic(
-            api_key=os.environ.get("ANTHROPIC_API_KEY"),
-        )
-    return _client
-
-
-async def _generate_with_retry(
-    client: anthropic.AsyncAnthropic,
-    system: str,
-    prompt: str,
-    max_retries: int = 3,
-) -> str:
-    """Call Claude with exponential backoff on rate limit errors."""
-    for attempt in range(max_retries):
-        try:
-            response = await client.messages.create(
-                model=_MODEL,
-                max_tokens=1024,
-                system=system,
-                messages=[{"role": "user", "content": prompt}],
-            )
-            return response.content[0].text
-        except anthropic.RateLimitError:
-            if attempt < max_retries - 1:
-                wait = 2 ** (attempt + 1)
-                await asyncio.sleep(wait)
-                continue
-            raise
-    raise RuntimeError("Unreachable")
+async def _generate(system: str, prompt: str) -> str:
+    """Call the configured LLM provider."""
+    provider = get_provider()
+    return await provider.generate(system, prompt)
 
 
 def _load_personality(personality: Personality) -> str:
@@ -65,6 +33,11 @@ _CHANNEL_RULES: dict[str, str] = {
         "Format: Return a JSON object with 'subject' and 'body' keys. "
         "The body should be a full email. Include a sign-off from Karen."
     ),
+    "email_cc": (
+        "Format: Return a JSON object with 'subject' and 'body' keys. "
+        "This email is CC'ing a coworker for visibility. Acknowledge the CC'd person. "
+        "Tone shift: there is now an audience. Be professionally formal."
+    ),
     "sms": (
         "Format: Return a JSON object with 'body' key only. "
         "Keep it under 160 characters. Punchy. No greeting."
@@ -73,14 +46,15 @@ _CHANNEL_RULES: dict[str, str] = {
         "Format: Return a JSON object with 'body' key only. "
         "Can be longer than SMS. Emoji-friendly. Conversational."
     ),
-    "linkedin": (
-        "Format: Return a JSON object with 'subject' and 'body' keys. "
-        "Professional InMail tone. Karen is connecting/messaging on LinkedIn."
-    ),
-    "twitter": (
+    "voice_call": (
         "Format: Return a JSON object with 'body' key only. "
-        "Max 280 characters. Public tweet from @KarenFollowsUp. "
-        "Don't @ the target's handle unless provided."
+        "This text will be read aloud by text-to-speech on a phone call. "
+        "Write it as spoken words. No special characters. Clear and direct."
+    ),
+    "slack": (
+        "Format: Return a JSON object with 'body' key only. "
+        "Slack channel message. Can use *bold*, _italic_, and line breaks. "
+        "Karen is posting in a professional workspace channel."
     ),
     "calendar": (
         "Format: Return a JSON object with 'title' and 'description' keys. "
@@ -106,16 +80,16 @@ _CHANNEL_RULES: dict[str, str] = {
 
 # What each level looks like
 _LEVEL_CONTEXT: dict[int, str] = {
-    1: "First contact. Warm. Friendly. One chance to resolve this nicely.",
-    2: "Follow-up bump. Slightly less warm. They didn't respond to Level 1.",
-    3: "Tone shift. Karen is noticing the silence. Concern is creeping in.",
-    4: "CC'ing a mutual contact for 'visibility'. The audience is growing.",
-    5: "LinkedIn. Karen is bringing this to their professional life.",
-    6: "Calendar event. Karen is scheduling time to discuss this matter.",
+    1: "First contact. Email only. Warm and friendly. One chance to resolve this nicely.",
+    2: "SMS. Direct to their phone. They can't miss this. Short and punchy.",
+    3: "WhatsApp + Voice Call. Karen is calling them. The phone will ring. Urgency rising.",
+    4: "OSINT Research. Karen found where they work. The SMS 'I know where you work' was just sent. Intelligence phase.",
+    5: "Email with CC. Karen found a coworker. Now there's an audience. Professional pressure.",
+    6: "Slack. Karen is posting in a professional channel. Colleagues can see this.",
     7: "Discord @everyone. The community now knows. Public accountability.",
-    8: "Open Matters page. Permanently documented on the internet.",
-    9: "Twitter. The world now knows. There is no going back.",
-    10: "FedEx formal letter. Physical mail. Karen's magnum opus. Maximum formality.",
+    8: "Calendar event. Karen is scheduling a meeting to discuss this. It's on the calendar now.",
+    9: "Open Matters page. Permanently documented on the internet for all to see.",
+    10: "FedEx formal letter. Physical mail. Legal-adjacent language. Karen's magnum opus.",
 }
 
 
@@ -227,8 +201,6 @@ async def generate_message(
     channel_rules = _CHANNEL_RULES.get(channel, _CHANNEL_RULES["email"])
     level_context = _LEVEL_CONTEXT.get(level, f"Level {level} escalation.")
 
-    client = _get_client()
-
     msg_prompt = _build_message_prompt(
         personality_prompt, channel_rules, level_context,
         level, channel, initiator_name, target_name,
@@ -241,8 +213,8 @@ async def generate_message(
     )
 
     msg_text, commentary_text = await asyncio.gather(
-        _generate_with_retry(client, _SYSTEM_MESSAGE, msg_prompt),
-        _generate_with_retry(client, _COMMENTARY_SYSTEM, commentary_prompt),
+        _generate(_SYSTEM_MESSAGE, msg_prompt),
+        _generate(_COMMENTARY_SYSTEM, commentary_prompt),
     )
 
     try:
