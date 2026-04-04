@@ -26,10 +26,13 @@ export function useKarenAudio(
   const lastProcessedRef = useRef(0);
   const onPlayStartRef = useRef(onPlayStart);
   const onPlayEndRef = useRef(onPlayEnd);
+  const playNextRef = useRef<() => void>(undefined);
 
   // Keep callback refs current
-  onPlayStartRef.current = onPlayStart;
-  onPlayEndRef.current = onPlayEnd;
+  useEffect(() => {
+    onPlayStartRef.current = onPlayStart;
+    onPlayEndRef.current = onPlayEnd;
+  }, [onPlayStart, onPlayEnd]);
 
   const playNext = useCallback(() => {
     if (playingRef.current || queueRef.current.length === 0) return;
@@ -44,23 +47,25 @@ export function useKarenAudio(
     audio.onended = () => {
       playingRef.current = false;
       onPlayEndRef.current?.();
-      // Play next in queue if any
-      playNext();
+      playNextRef.current?.();
     };
 
     audio.onerror = () => {
       playingRef.current = false;
       onPlayEndRef.current?.();
-      // Skip failed audio, try next
-      playNext();
+      playNextRef.current?.();
     };
 
     audio.play().catch(() => {
       playingRef.current = false;
       onPlayEndRef.current?.();
-      playNext();
+      playNextRef.current?.();
     });
   }, []);
+
+  useEffect(() => {
+    playNextRef.current = playNext;
+  }, [playNext]);
 
   // Process new audio events
   useEffect(() => {

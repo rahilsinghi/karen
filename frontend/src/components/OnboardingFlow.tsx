@@ -270,7 +270,7 @@ export function OnboardingFlow() {
             </button>
 
             <p className="font-mono text-sm text-stone-600 uppercase font-bold italic">
-              "WE HAVE MUCH WORK TO DO."
+              &ldquo;WE HAVE MUCH WORK TO DO.&rdquo;
             </p>
           </motion.div>
         )}
