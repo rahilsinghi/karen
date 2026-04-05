@@ -374,9 +374,7 @@ Built for the **MischiefClaw Hackathon** by:
 
 - **Rahil Singhi** — Architecture, backend, integrations, frontend
 - **Sariya Rizwan** — Frontend UI, pixel arena game mode
-- **Bharath Mahesh Gera** — Target (involuntarily)
-- **Chinmay Shringi** — Next target (pre-filled)
-- **Aishwarya Ghaiwat** — Circle member
+
 
 ---
 
